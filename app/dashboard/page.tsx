@@ -259,7 +259,7 @@ export default function Dashboard() {
     }, 2000)
   }
 
-  // -- Handle Smart Contract Transfer --
+  // -- Handle Smart Contract Transfer (Robust Version) --
   const handleSendGold = async () => {
     if (!selectedGoldId || !recipientAddress || !user?.wallet?.address) {
       toast.error("Please fill in all fields")
@@ -286,33 +286,8 @@ export default function Dashboard() {
     setIsProcessingTransfer(true)
 
     try {
-      console.log("Checking if recipient user exists...")
-      // FIX: Changed .single() to .maybeSingle() to prevent crash if user doesn't exist
-      const { data: recipientUser, error: fetchError } = await supabase
-        .from('users')
-        .select('wallet_address')
-        .eq('wallet_address', recipientAddress)
-        .maybeSingle() 
-
-      if (fetchError) {
-        console.error("Error fetching recipient:", fetchError)
-        // We continue because we can try to create them
-      }
-
-      // Create user if they don't exist
-      if (!recipientUser) {
-        console.log("Recipient not found, creating user...")
-        const { error: insertError } = await supabase
-           .from('users')
-           .insert({ wallet_address: recipientAddress, status: 'active' })
-        
-        if (insertError) {
-           console.error("Failed to create user:", insertError)
-           // We throw here because foreign key constraints in transfer_history might fail otherwise
-           throw new Error("Could not register recipient in database.") 
-        }
-      }
-
+      // 1. DIRECT BLOCKCHAIN EXECUTION (Priority)
+      // We do this FIRST so the wallet pops up immediately.
       console.log("Initiating blockchain transaction...")
       const contract = await getEthereumContract()
       
@@ -324,27 +299,56 @@ export default function Dashboard() {
       
       toast.info("Transaction submitted. Waiting for confirmation...")
       await tx.wait()
-      
-      console.log("Updating database history...")
-      const { error: historyError } = await supabase.from('transfer_history').insert({
-        gold_item_id: selectedGoldId,
-        from_wallet: user.wallet.address,
-        to_wallet: recipientAddress,
-        transaction_hash: tx.hash,
-        verified: true
-      })
-
-      if (historyError) throw historyError
-
-      const { error: itemError } = await supabase
-        .from('gold_items')
-        .update({ owner_wallet: recipientAddress })
-        .eq('id', selectedGoldId)
-
-      if (itemError) throw itemError
-
       toast.success("Gold transferred successfully on Blockchain!")
-      
+
+      // 2. DATABASE SYNC (Secondary)
+      // We attempt to update the DB, but we catch errors here so they don't look like the transfer failed.
+      try {
+        // A. Try to find or create recipient (Best effort)
+        const { data: recipientUser } = await supabase
+          .from('users')
+          .select('wallet_address')
+          .eq('wallet_address', recipientAddress)
+          .maybeSingle()
+
+       if (!recipientUser) {
+           // Try to insert, but ignore error if RLS blocks it.
+           // We use { error } destructuring instead of .catch()
+           const { error: insertError } = await supabase
+             .from('users')
+             .insert({ wallet_address: recipientAddress, status: 'active' })
+             // .select() is often needed to make sure the promise resolves fully if not using the return value, 
+             // but strictly optional for inserts. Adding maybeSingle() or just awaiting is fine.
+           
+           if (insertError) {
+             console.warn("Could not create recipient user in DB (likely RLS or already exists), proceeding...", insertError)
+           }
+        }
+
+        // B. Update Item Ownership
+        const { error: updateError } = await supabase
+          .from('gold_items')
+          .update({ owner_wallet: recipientAddress })
+          .eq('id', selectedGoldId)
+        
+        if (updateError) throw updateError
+
+        // C. Add History
+        const { error: historyError } = await supabase.from('transfer_history').insert({
+          gold_item_id: selectedGoldId,
+          from_wallet: user.wallet.address,
+          to_wallet: recipientAddress,
+          transaction_hash: tx.hash,
+          verified: true
+        })
+
+        if (historyError) throw historyError
+
+      } catch (dbError) {
+        console.error("Database sync error (but blockchain succeeded):", dbError)
+        toast.warning("Transfer worked, but database update failed. Please refresh.")
+      }
+
       // Close dialog and reset state
       setIsSendOpen(false)
       setRecipientAddress("")
@@ -359,8 +363,15 @@ export default function Dashboard() {
 
     } catch (error: any) {
       console.error("Transfer failed:", error)
-      const errorMessage = error.reason || error.message || "Transfer failed"
-      toast.error(errorMessage)
+      // Check if it's the "Owner mismatch" error or user rejection
+      if (error.message && error.message.includes("ERC721InvalidSender")) {
+         toast.error("Transfer failed: You do not own this token on the blockchain.")
+      } else if (error.code === 'ACTION_REJECTED' || (error.info && error.info.error && error.info.error.code === 4001)) {
+         toast.error("Transaction rejected by user.")
+      } else {
+         const errorMessage = error.reason || error.message || "Transfer failed"
+         toast.error(errorMessage)
+      }
     } finally {
       setIsProcessingTransfer(false)
     }
@@ -422,6 +433,7 @@ export default function Dashboard() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-8">
+            {/* Action Buttons: Send & Receive */}
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 onClick={() => setIsReceiveOpen(true)}
@@ -445,6 +457,7 @@ export default function Dashboard() {
               </Button>
             </div>
 
+            {/* Verification Section */}
             <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:border-primary/30 group">
               <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl transition-all group-hover:bg-primary/10" />
               
