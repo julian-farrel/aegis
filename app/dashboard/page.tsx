@@ -16,7 +16,6 @@ import {
   ArrowDownLeft,
   Copy,
   AlertTriangle,
-  PlusCircle 
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
@@ -75,7 +74,7 @@ export default function Dashboard() {
     }
   }, [ready, authenticated, router])
 
-  // -- NEW: Sync User to Database on Login --
+  // -- Sync User to Database on Login --
   useEffect(() => {
     async function syncUserToDb() {
       if (ready && authenticated && user?.wallet?.address) {
@@ -121,14 +120,14 @@ export default function Dashboard() {
     if (authenticated) {
       fetchUserGold()
     }
-  }, [authenticated, user?.wallet?.address, isMinting]) // Refresh when minting changes
+  }, [authenticated, user?.wallet?.address, isMinting])
 
   const handleLogout = async () => {
     await logout()
     router.push("/")
   }
 
-  // -- Mint Function (FIX for "Nonexistent Token" error) --
+  // -- Mint Function --
   const handleMint = async () => {
     if (!user?.wallet?.address) return
     setIsMinting(true)
@@ -136,29 +135,24 @@ export default function Dashboard() {
     try {
       const contract = await getEthereumContract()
       
-      // 1. Mint on Blockchain
       toast.info("Minting new gold bar on Sepolia...")
-      const uri = "https://example.com/gold-metadata.json" // Placeholder metadata
+      const uri = "https://example.com/gold-metadata.json" 
       
       const tx = await contract.safeMint(user.wallet.address, uri)
       toast.info("Transaction sent! Waiting for confirmation...")
       
       const receipt = await tx.wait()
       
-      // 2. Find the Token ID from the events
       let mintedTokenId = null
       
       for (const log of receipt.logs) {
         try {
-          // Attempt to parse the log with the contract interface
           const parsedLog = contract.interface.parseLog(log)
           if (parsedLog && parsedLog.name === "Transfer") {
-            // The 3rd argument (index 2) is the tokenId
             mintedTokenId = parsedLog.args[2].toString()
             break
           }
         } catch (e) {
-          // Ignore logs that don't match our ABI
           continue
         }
       }
@@ -169,7 +163,6 @@ export default function Dashboard() {
 
       console.log("Minted Token ID:", mintedTokenId)
 
-      // 3. Add to Supabase
       const serialNumber = `AG${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`
       
       const { error } = await supabase.from('gold_items').insert({
@@ -181,7 +174,7 @@ export default function Dashboard() {
         image_url: "aegis gold.jpeg",
         minted_date: new Date().toISOString(),
         certificate_id: `CERT-${serialNumber}`,
-        token_id: parseInt(mintedTokenId), // Crucial: Store the real blockchain ID
+        token_id: parseInt(mintedTokenId),
         blockchain_hash: tx.hash
       })
 
@@ -189,7 +182,6 @@ export default function Dashboard() {
 
       toast.success(`Gold Bar #${mintedTokenId} Minted Successfully!`)
       
-      // Refresh list
       const { data } = await supabase
         .from('gold_items')
         .select('*')
@@ -204,7 +196,7 @@ export default function Dashboard() {
     }
   }
 
-  // -- NFC Scan Logic (Existing) --
+  // -- NFC Scan Logic --
   const handleNFCScan = async () => {
     setIsScanning(true)
     setScanResult(null)
@@ -285,6 +277,7 @@ export default function Dashboard() {
       return
     }
 
+    // Ensure valid Token ID
     if (selectedItem.token_id === null || selectedItem.token_id === undefined) {
        toast.error("This item is not linked to the blockchain (missing Token ID).")
        return
@@ -293,32 +286,46 @@ export default function Dashboard() {
     setIsProcessingTransfer(true)
 
     try {
-      const { data: recipientUser } = await supabase
+      console.log("Checking if recipient user exists...")
+      // FIX: Changed .single() to .maybeSingle() to prevent crash if user doesn't exist
+      const { data: recipientUser, error: fetchError } = await supabase
         .from('users')
         .select('wallet_address')
         .eq('wallet_address', recipientAddress)
-        .single()
+        .maybeSingle() 
 
-      if (!recipientUser) {
-        await supabase.from('users').insert({ wallet_address: recipientAddress, status: 'active' })
+      if (fetchError) {
+        console.error("Error fetching recipient:", fetchError)
+        // We continue because we can try to create them
       }
 
+      // Create user if they don't exist
+      if (!recipientUser) {
+        console.log("Recipient not found, creating user...")
+        const { error: insertError } = await supabase
+           .from('users')
+           .insert({ wallet_address: recipientAddress, status: 'active' })
+        
+        if (insertError) {
+           console.error("Failed to create user:", insertError)
+           // We throw here because foreign key constraints in transfer_history might fail otherwise
+           throw new Error("Could not register recipient in database.") 
+        }
+      }
+
+      console.log("Initiating blockchain transaction...")
       const contract = await getEthereumContract()
       
-      console.log(`Transferring Token ID ${selectedItem.token_id} to ${recipientAddress}`)
-      
-      // --- FIX STARTS HERE ---
-      // Use standard ERC721 safeTransferFrom instead of custom transferGold
       const tx = await contract["safeTransferFrom(address,address,uint256)"](
         user.wallet.address, 
         recipientAddress, 
         selectedItem.token_id
       )
-      // --- FIX ENDS HERE ---
       
       toast.info("Transaction submitted. Waiting for confirmation...")
       await tx.wait()
       
+      console.log("Updating database history...")
       const { error: historyError } = await supabase.from('transfer_history').insert({
         gold_item_id: selectedGoldId,
         from_wallet: user.wallet.address,
@@ -337,10 +344,13 @@ export default function Dashboard() {
       if (itemError) throw itemError
 
       toast.success("Gold transferred successfully on Blockchain!")
+      
+      // Close dialog and reset state
       setIsSendOpen(false)
       setRecipientAddress("")
       setSelectedGoldId("")
       
+      // Refresh list
       const { data } = await supabase
         .from('gold_items')
         .select('*')
@@ -412,7 +422,6 @@ export default function Dashboard() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-8">
-            {/* Action Buttons: Send & Receive */}
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 onClick={() => setIsReceiveOpen(true)}
@@ -436,7 +445,6 @@ export default function Dashboard() {
               </Button>
             </div>
 
-            {/* Verification Section */}
             <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:border-primary/30 group">
               <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl transition-all group-hover:bg-primary/10" />
               
