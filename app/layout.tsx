@@ -2,17 +2,16 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import Providers from '@/components/providers' 
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'Aegis - Gold Authentication via Blockchain & NFC',
-  description: 'Verify gold bar authenticity instantly using blockchain technology and NFC. Tap your phone to protect your investment from counterfeit products.',
-  generator: 'v0.app',
+  description: 'Verify gold bar authenticity instantly using blockchain technology.',
   icons: {
-    icon: '/aegis-logo copy.png',
-    apple: '/my-new-logo.png',
+    icon: '/images/design-mode/Verifly-2.png',
   },
 }
 
@@ -24,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <Analytics />
       </body>
     </html>

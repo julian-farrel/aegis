@@ -3,21 +3,20 @@
 import { Button } from "@/components/ui/button"
 import { Shield, Smartphone, Link2, CheckCircle2, FileText } from "lucide-react"
 import AnimatedBackground from "@/components/animated-background"
-import { useState } from "react"
+import { usePrivy } from "@privy-io/react-auth"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function Home() {
-  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { login, authenticated, ready } = usePrivy()
   const router = useRouter()
 
-  const handleGetStarted = () => {
-    setShowAuthModal(true)
-  }
-
-  const handleAuthSuccess = () => {
-    setShowAuthModal(false)
-    router.push("/dashboard")
-  }
+  // Automatically redirect if user is already logged in
+  useEffect(() => {
+    if (ready && authenticated) {
+      router.push("/dashboard")
+    }
+  }, [ready, authenticated, router])
 
   const handleReadWhitepaper = () => {
     window.open(
@@ -30,42 +29,52 @@ export default function Home() {
     <div className="relative min-h-screen overflow-hidden bg-background">
       <AnimatedBackground />
 
-      {/* Header/Nav */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-2 py-2 lg:px-4 lg:py-2 bg-background/80 backdrop-blur-md border-b border-border/10">
+      {/* STICKY HEADER SECTION */}
+      <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-md border-b border-border/10 shadow-sm">
         <div className="flex items-center gap-3">
           <img
             src="/images/design-mode/Verifly-2.png"
             alt="Aegis Logo"
-            className="object-contain h-56 w-72 text-center border-0"
+            className="object-contain h-12 w-auto" // Adjusted size for better sticky header fit
           />
         </div>
 
         <nav className="hidden md:flex items-center gap-8">
-          <a href="#benefits" className="text-foreground hover:text-primary transition-colors font-medium">
+          <a href="#benefits" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
             Benefits
           </a>
-          <a href="#trusted-by" className="text-foreground hover:text-primary transition-colors font-medium">
+          <a href="#trusted-by" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
             Trusted By
           </a>
-          <a href="#documentation" className="text-foreground hover:text-primary transition-colors font-medium">
+          <a href="#documentation" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
             Documentation
           </a>
         </nav>
 
-        <Button
-          variant="outline"
-          className="border-primary/30 text-foreground hover:bg-primary hover:text-primary-foreground bg-transparent"
-        >
-          Contact Us
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            className="hidden sm:flex border-primary/30 text-foreground hover:bg-primary hover:text-primary-foreground bg-transparent"
+            onClick={() => window.location.href = 'mailto:contact@aegis.com'}
+          >
+            Contact Us
+          </Button>
+          
+          <Button 
+            className="bg-primary text-primary-foreground hover:bg-accent shadow-md"
+            onClick={login}
+          >
+            Login
+          </Button>
+        </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 mx-auto max-w-7xl px-6 py-8 lg:px-12 lg:py-12">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+      <section className="relative z-10 mx-auto max-w-7xl px-6 py-12 lg:px-12 lg:py-20">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           {/* Left Content */}
           <div className="flex flex-col justify-center space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm text-primary w-fit">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm text-primary w-fit animate-fade-in">
               <Shield className="h-4 w-4" />
               Blockchain-Secured Authentication
             </div>
@@ -82,15 +91,15 @@ export default function Home() {
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button
                 size="lg"
-                className="bg-primary text-primary-foreground hover:bg-accent text-base"
-                onClick={handleGetStarted}
+                className="bg-primary text-primary-foreground hover:bg-accent text-base h-12 px-8 shadow-lg transition-transform hover:scale-105"
+                onClick={login} // CONNECTED TO PRIVY
               >
                 Get Started
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-primary/30 text-foreground hover:bg-primary/10 text-base bg-transparent"
+                className="border-primary/30 text-foreground hover:bg-primary/10 text-base h-12 px-8 bg-transparent"
                 onClick={handleReadWhitepaper}
               >
                 Learn More
@@ -100,11 +109,13 @@ export default function Home() {
 
           {/* Right Visual */}
           <div className="relative flex items-center justify-center">
-            <div className="relative h-96 w-full">
+            <div className="relative h-[500px] w-full max-w-lg">
+               {/* Added a decorative glow effect behind the image */}
+              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full opacity-30 transform translate-y-4"></div>
               <img
                 src="/images/design-mode/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yM19hX3JlYWxfcGhvdG9fb2ZfZ29sZF9iYXJzXzQ0NDE0OTY2LTg5NjMtNGEwZi05YzMwLThjNDBlYzRmOTMzZl8xLmpwZw.jpg.webp"
                 alt="Gold Bars"
-                className="h-full w-full object-contain drop-shadow-2xl"
+                className="relative h-full w-full object-cover rounded-2xl shadow-2xl border border-white/10"
               />
             </div>
           </div>
@@ -112,15 +123,15 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section id="benefits" className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
-        <h2 className="text-balance mb-12 text-center text-4xl font-bold tracking-tight lg:text-5xl">
-          <span className="text-foreground">How It Works&nbsp; </span>
+      <section id="benefits" className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-12">
+        <h2 className="text-balance mb-16 text-center text-4xl font-bold tracking-tight lg:text-5xl">
+          <span className="text-foreground">How It Works</span>
         </h2>
 
         <div className="grid gap-8 md:grid-cols-3">
           {/* Step 1 */}
-          <div className="group relative overflow-hidden rounded-xl border border-border bg-card p-8 transition-all hover:border-primary/50">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <Smartphone className="h-8 w-8 text-primary" />
             </div>
             <h3 className="mb-3 text-xl font-semibold text-card-foreground">Tap Your Phone</h3>
@@ -130,8 +141,8 @@ export default function Home() {
           </div>
 
           {/* Step 2 */}
-          <div className="group relative overflow-hidden rounded-xl border border-border bg-card p-8 transition-all hover:border-primary/50">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <Link2 className="h-8 w-8 text-primary" />
             </div>
             <h3 className="mb-3 text-xl font-semibold text-card-foreground">Blockchain Verification</h3>
@@ -142,8 +153,8 @@ export default function Home() {
           </div>
 
           {/* Step 3 */}
-          <div className="group relative overflow-hidden rounded-xl border border-border bg-card p-8 transition-all hover:border-primary/50">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <CheckCircle2 className="h-8 w-8 text-primary" />
             </div>
             <h3 className="mb-3 text-xl font-semibold text-card-foreground">Instant Results</h3>
@@ -154,52 +165,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
-        <div className="grid gap-8 lg:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card p-8 lg:p-12">
-            <h3 className="mb-4 text-2xl font-bold text-card-foreground">Unbreakable Security</h3>
-            <p className="mb-6 text-pretty leading-relaxed text-muted-foreground">
-              Powered by blockchain technology, each gold bar has a unique, immutable digital fingerprint that cannot be
-              replicated or tampered with.
-            </p>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                <span className="text-muted-foreground">Tamper-proof verification</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                <span className="text-muted-foreground">Real-time authentication</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                <span className="text-muted-foreground">Complete supply chain transparency</span>
-              </li>
-            </ul>
-          </div>
+      {/* Trusted By Section */}
+      <section id="trusted-by" className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-12 bg-muted/30 rounded-3xl my-12">
+        <h2 className="text-balance mb-12 text-center text-3xl font-bold tracking-tight">
+          Trusted By Industry Leaders
+        </h2>
 
-          <div className="rounded-xl border border-border bg-card p-8 lg:p-12">
-            <h3 className="mb-4 text-2xl font-bold text-card-foreground">Simple & Fast</h3>
-            <p className="mb-6 text-pretty leading-relaxed text-muted-foreground">
-              No special equipment needed. Just tap your smartphone to verify authenticity in seconds, anywhere,
-              anytime.
-            </p>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                <span className="text-muted-foreground">Works with any NFC phone</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                <span className="text-muted-foreground">Instant verification results</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                <span className="text-muted-foreground">No app download required</span>
-              </li>
-            </ul>
-          </div>
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-12 items-center">
+          {[
+            { src: "/images/design-mode/Logo-Lotus-Archi-Merah-1.png.webp", alt: "Lotus Archi" },
+            { src: "/images/design-mode/ubs.png", alt: "UBS" },
+            { src: "/images/design-mode/antam-logo-png_seeklogo-352008.png", alt: "Antam" },
+            { src: "/images/design-mode/30f71-logo-pusatemas.id_.png", alt: "Pusatemas.id" },
+          ].map((logo, index) => (
+            <div key={index} className="flex items-center justify-center p-6 grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100">
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                className="h-12 w-auto object-contain"
+              />
+            </div>
+          ))}
         </div>
       </section>
 
@@ -213,7 +199,7 @@ export default function Home() {
           </div>
 
           <h2 className="text-balance mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
-            <span className="text-foreground">Documentation</span>
+            Technical Documentation
           </h2>
 
           <p className="text-pretty mb-8 text-lg leading-relaxed text-muted-foreground lg:text-xl">
@@ -223,7 +209,8 @@ export default function Home() {
 
           <Button
             size="lg"
-            className="bg-primary text-primary-foreground hover:bg-accent text-base gap-2"
+            variant="outline"
+            className="border-primary text-primary hover:bg-primary hover:text-white gap-2"
             onClick={handleReadWhitepaper}
           >
             <FileText className="h-5 w-5" />
@@ -232,76 +219,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Partnership Section */}
-      <section id="trusted-by" className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
-        <h2 className="text-balance mb-12 text-center text-4xl font-bold tracking-tight">
-          <span className="text-foreground">Trusted By </span>
-        </h2>
-
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-12">
-          <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50">
-            <img
-              src="/images/design-mode/Logo-Lotus-Archi-Merah-1.png.webp"
-              alt="Lotus Archi"
-              className="h-16 object-contain transition-all hover:scale-110 w-44"
-            />
-          </div>
-
-          <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50">
-            <img
-              src="/images/design-mode/ubs.png"
-              alt="UBS"
-              className="h-16 w-auto object-contain transition-all hover:scale-110"
-            />
-          </div>
-
-          <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50">
-            <img
-              src="/images/design-mode/antam-logo-png_seeklogo-352008.png"
-              alt="Antam"
-              className="object-contain transition-all hover:scale-110 w-80 h-48"
-            />
-          </div>
-
-          <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50">
-            <img
-              src="/images/design-mode/30f71-logo-pusatemas.id_.png"
-              alt="Pusatemas.id"
-              className="h-16 w-auto object-contain transition-all hover:scale-110"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Footer CTA */}
-      <section className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
-        <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-12 text-center">
-          <h2 className="text-balance mb-4 text-3xl font-bold tracking-tight text-foreground lg:text-4xl">
-            Protect Your Investment Today
-          </h2>
-          <p className="text-pretty mb-8 text-lg text-muted-foreground">
-            Join thousands of investors who trust Aegis to verify their gold authenticity
-          </p>
-          <Button
-            size="lg"
-            className="bg-primary text-primary-foreground hover:bg-accent text-base"
-            onClick={handleGetStarted}
-          >
-            Get Started Now
-          </Button>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="relative z-10 border-t border-border bg-card py-8">
+      <footer className="relative z-10 border-t border-border bg-card py-12">
         <div className="mx-auto max-w-7xl px-6 lg:px-12">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-3">
-              <img src="/images/aegis-logo.png" alt="Aegis Logo" className="h-8 w-8 object-contain" />
+              <img src="/images/design-mode/Verifly-2.png" alt="Aegis Logo" className="h-8 w-auto object-contain" />
               <span className="text-xl font-bold text-card-foreground">Aegis</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © 2025 Aegis. All rights reserved. Secured by blockchain technology.
+            <p className="text-sm text-muted-foreground text-center md:text-right">
+              © 2025 Aegis. All rights reserved.<br/>Secured by blockchain technology.
             </p>
           </div>
         </div>
