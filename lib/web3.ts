@@ -1,7 +1,7 @@
 import { ethers } from "ethers"
 
 // Your Deployed Contract Address
-export const GOLD_CONTRACT_ADDRESS = "0x67D154569DF6F3248D5CAA29A9Ac95ceBF4Fd06c"
+export const GOLD_CONTRACT_ADDRESS = "0x2BFa76d78e31F0F3C1984ab93162980a88CC695D"
 
 // Your Full ABI
 export const GOLD_CONTRACT_ABI = [
