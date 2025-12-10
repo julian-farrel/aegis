@@ -16,7 +16,7 @@ import {
   ArrowDownLeft,
   Copy,
   AlertTriangle,
-  PlusCircle // Imported new icon
+  PlusCircle 
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
@@ -42,7 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { ethers } from "ethers" // Ensure ethers is imported
+import { ethers } from "ethers" 
 
 export default function Dashboard() {
   const { user, authenticated, ready, logout } = usePrivy()
@@ -146,8 +146,6 @@ export default function Dashboard() {
       const receipt = await tx.wait()
       
       // 2. Find the Token ID from the events
-      // The Transfer event is usually the first event: Transfer(from, to, tokenId)
-      // We parse the logs to find the Transfer event
       let mintedTokenId = null
       
       for (const log of receipt.logs) {
@@ -309,7 +307,14 @@ export default function Dashboard() {
       
       console.log(`Transferring Token ID ${selectedItem.token_id} to ${recipientAddress}`)
       
-      const tx = await contract.transferGold(recipientAddress, selectedItem.token_id)
+      // --- FIX STARTS HERE ---
+      // Use standard ERC721 safeTransferFrom instead of custom transferGold
+      const tx = await contract["safeTransferFrom(address,address,uint256)"](
+        user.wallet.address, 
+        recipientAddress, 
+        selectedItem.token_id
+      )
+      // --- FIX ENDS HERE ---
       
       toast.info("Transaction submitted. Waiting for confirmation...")
       await tx.wait()
