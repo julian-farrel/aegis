@@ -31,7 +31,7 @@ export default function Home() {
       <AnimatedBackground />
 
       {/* Header/Nav */}
-      <header className="relative z-10 flex items-center justify-between px-2 py-2 lg:px-4 lg:py-2">
+      <header className="sticky top-0 z-50 flex items-center justify-between px-2 py-2 lg:px-4 lg:py-2 bg-background/80 backdrop-blur-md border-b border-border/10">
         <div className="flex items-center gap-3">
           <img
             src="/images/design-mode/Verifly-2.png"

@@ -11,21 +11,8 @@ export const metadata: Metadata = {
   description: 'Verify gold bar authenticity instantly using blockchain technology and NFC. Tap your phone to protect your investment from counterfeit products.',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/aegis-logo copy.png',
+    apple: '/my-new-logo.png',
   },
 }
 
