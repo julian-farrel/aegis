@@ -41,7 +41,6 @@ export default function Home() {
       <header className="fixed top-0 z-50 w-full border-b border-primary/10 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-7xl px-6 lg:px-12 h-24 flex items-center justify-between">
           
-          {/* Logo Section */}
           <div className="flex items-center gap-3 transition-opacity hover:opacity-80">
              <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-primary/10 border border-primary/20 shadow-[0_0_15px_-3px_var(--primary)]">
                 <img 
@@ -53,7 +52,6 @@ export default function Home() {
              <span className="font-bold text-xl tracking-tight text-foreground">Aegis</span>
           </div>
 
-          {/* Navigation */}
           <nav className="hidden md:flex items-center gap-10">
             <a href="#benefits" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
               Benefits
@@ -70,15 +68,6 @@ export default function Home() {
           <div className="flex items-center gap-4">
             {ready && authenticated ? (
               <div className="flex items-center gap-3">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={logout}
-                  className="hidden sm:flex text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
                 <Button 
                   onClick={() => router.push("/dashboard")}
                   className="h-10 px-6 gap-2 font-semibold bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:bg-primary/90 transition-all border border-primary/20 rounded-full"
@@ -102,7 +91,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO SECTION */}
       <section className="relative z-10 mx-auto max-w-7xl px-6 py-32 lg:px-12 lg:py-40">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           <div className="flex flex-col justify-center space-y-8">
@@ -141,7 +129,6 @@ export default function Home() {
 
           <div className="relative flex items-center justify-center">
             <div className="relative h-[500px] w-full max-w-lg animate-float">
-              {/* Gold Glow Behind Image */}
               <div className="absolute inset-0 bg-primary/30 blur-[100px] rounded-full opacity-50 transform translate-y-10"></div>
               
               <div className="relative rounded-3xl border border-white/10 overflow-hidden shadow-2xl backdrop-blur-sm bg-white/5 p-2">
@@ -151,7 +138,6 @@ export default function Home() {
                   className="relative h-full w-full object-cover rounded-2xl"
                 />
                 
-                {/* Floating Badge */}
                 <div className="absolute bottom-8 left-8 right-8 glass-card p-4 rounded-xl border border-white/20 bg-black/40 backdrop-blur-md flex items-center gap-4 animate-pulse">
                   <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/50">
                     <CheckCircle2 className="h-6 w-6 text-green-500" />
@@ -167,7 +153,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* HOW IT WORKS SECTION */}
       <section id="benefits" className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-12">
         <h2 className="text-balance mb-16 text-center text-4xl font-bold tracking-tight lg:text-5xl">
           <span className="text-foreground">How It Works</span>
@@ -207,7 +192,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TRUSTED BY SECTION */}
      <section id="trusted-by" className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
         <h2 className="text-balance mb-12 text-center text-4xl font-bold tracking-tight">
           <span className="text-foreground">Trusted By </span>
@@ -248,7 +232,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DOCUMENTATION SECTION */}
       <section id="documentation" className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-8 flex justify-center">
@@ -278,7 +261,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="relative z-10 border-t border-border/40 bg-card/50 py-12 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-6 lg:px-12">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">

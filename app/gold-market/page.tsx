@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function GoldMarketPage() {
   const router = useRouter()
   const [currency, setCurrency] = useState<'USD' | 'IDR'>('USD')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Mock price data
   const currentPrice = currency === 'USD' ? 2043.50 : 32_456_000
   const priceChange = currency === 'USD' ? +12.30 : +195_680
   const percentChange = +0.61
@@ -52,33 +52,33 @@ export default function GoldMarketPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-border bg-card border-b">
-        <div className="max-w-full pl-0 pr-6 py-2 lg:pr-12">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-background selection:bg-primary/20">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-12">
+          <div className="flex items-center gap-3">
+             <div className="relative">
               <img 
-                src="/images/design-mode/Verifly-2(1).png" 
+                src="aegis.png" 
                 alt="Aegis Logo" 
-                className="object-contain w-52 h-40"
+                className="h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-transform hover:scale-105" 
               />
             </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/dashboard')}
-              className="border-border text-foreground hover:bg-muted"
-            >
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="text-muted-foreground hover:text-foreground hover:bg-primary/10"
+          >
+            <Link href="/dashboard">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
-            </Button>
-          </div>
+            </Link>
+          </Button>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="mx-auto max-w-7xl px-6 py-12 lg:px-12">
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -126,8 +126,7 @@ export default function GoldMarketPage() {
           </div>
         </div>
 
-        {/* Current Price Card */}
-        <div className="mb-8 rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-card p-8">
+        <div className="mb-8 rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-card p-8 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="h-6 w-6 text-primary" />
             <h2 className="text-xl font-bold text-card-foreground">XAU/{currency} Spot Price</h2>
@@ -148,7 +147,6 @@ export default function GoldMarketPage() {
           </p>
         </div>
 
-        {/* Distributor Prices */}
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-6">
             Indonesian Gold Distributors
@@ -158,11 +156,11 @@ export default function GoldMarketPage() {
             {distributorPrices.map((distributor) => (
               <div
                 key={distributor.name}
-                className="rounded-2xl border border-border bg-card p-6 hover:border-primary/50 transition-colors"
+                className="rounded-2xl border border-border bg-card p-6 hover:border-primary/50 transition-all hover:shadow-md"
               >
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-lg bg-background flex items-center justify-center p-2">
+                    <div className="w-16 h-16 rounded-lg bg-background flex items-center justify-center p-2 border border-border/50">
                       <img
                         src={distributor.logo || "/placeholder.svg"}
                         alt={distributor.name}
@@ -170,7 +168,7 @@ export default function GoldMarketPage() {
                       />
                     </div>
                     <div>
-                      <h3 className="font-bold text-card-foreground">{distributor.name}</h3>
+                      <h3 className="font-bold text-card-foreground text-lg">{distributor.name}</h3>
                       <div className={`flex items-center gap-1 text-sm font-medium ${
                         distributor.change > 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
@@ -182,7 +180,7 @@ export default function GoldMarketPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center pb-3 border-b border-border">
+                  <div className="flex justify-between items-center pb-3 border-b border-border/50">
                     <span className="text-sm text-muted-foreground">Buy Price (1 kg)</span>
                     <span className="text-lg font-bold text-green-500">
                       {currency === 'USD' ? '$' : 'Rp'}{distributor.buyPrice.toLocaleString('en-US', {
@@ -207,7 +205,7 @@ export default function GoldMarketPage() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-xl border border-border bg-muted/50 p-4">
+        <div className="mt-8 rounded-xl border border-border bg-muted/30 p-4">
           <p className="text-sm text-muted-foreground text-center">
             <strong>Disclaimer:</strong> Prices shown are indicative and may vary. Please contact distributors directly for real-time quotes and availability.
           </p>

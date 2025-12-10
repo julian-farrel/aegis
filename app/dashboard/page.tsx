@@ -8,19 +8,15 @@ import {
   XCircle,
   Shield,
   LogOut,
-  Home,
-  FileText,
-  Settings,
+  History,
   Smartphone,
   TrendingUp,
   AlertTriangle,
-  ExternalLink,
-  History,
-  X,
-  Wallet,
+  Settings,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
+import Link from "next/link" 
 
 export default function Dashboard() {
   const { user, authenticated, ready, logout } = usePrivy()
@@ -145,7 +141,6 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="mx-auto max-w-7xl px-6 py-8 lg:px-12">
         <div className="mb-8 flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -242,23 +237,28 @@ export default function Dashboard() {
               </span>
             </div>
           </div>
-
+  
           <div className="space-y-6">
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
               <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Quick Actions</h3>
               <div className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" onClick={() => router.push("history")}>
-                  <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
-                     <History className="h-4 w-4" />
-                  </div>
-                  View Scan History
+                
+                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" asChild>
+                  <Link href="/history">
+                    <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
+                      <History className="h-4 w-4" />
+                    </div>
+                    View Scan History
+                  </Link>
                 </Button>
                 
-                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" onClick={() => router.push("/gold-market")}>
-                  <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
-                     <TrendingUp className="h-4 w-4" />
-                  </div>
-                  Gold Market
+                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" asChild>
+                  <Link href="/gold-market">
+                    <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
+                      <TrendingUp className="h-4 w-4" />
+                    </div>
+                    Gold Market
+                  </Link>
                 </Button>
 
                 <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted">

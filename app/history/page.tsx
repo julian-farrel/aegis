@@ -1,28 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Scan } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { usePrivy } from "@privy-io/react-auth"
 
 export default function HistoryPage() {
-  const [user, setUser] = useState<any>(null)
-  const [history, setHistory] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, authenticated, ready } = usePrivy()
   const router = useRouter()
 
   useEffect(() => {
-    const userData = localStorage.getItem("aegis_user")
-    if (!userData) {
+    if (ready && !authenticated) {
       router.push("/")
-    } else {
-      setUser(JSON.parse(userData))
-      setIsLoading(false)
-      setHistory([]) 
     }
-  }, [router])
+  }, [ready, authenticated, router])
 
-  if (!user) return null
+  if (!ready || !authenticated) return null
 
   return (
     <div className="min-h-screen bg-background">
