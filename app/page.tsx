@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Shield, Smartphone, Link2, CheckCircle2, FileText, LogOut } from "lucide-react"
+import { Shield, Smartphone, Link2, CheckCircle2, FileText, LogOut, Wallet } from "lucide-react"
 import AnimatedBackground from "@/components/animated-background"
 import { usePrivy, useLogin } from "@privy-io/react-auth"
 import { useRouter } from "next/navigation"
@@ -10,10 +10,8 @@ import { useEffect } from "react"
 export default function Home() {
   const router = useRouter()
   
-  // 1. Hook to handle the "Login" action (e.g., when clicking the button)
   const { login } = useLogin({
     onComplete: () => {
-      // Runs immediately after a successful login flow
       router.push("/dashboard")
     },
     onError: (error) => {
@@ -21,10 +19,8 @@ export default function Home() {
     }
   })
 
-  // 2. Hook to check current status (e.g., if you refresh the page)
   const { ready, authenticated, logout } = usePrivy()
 
-  // 3. Auto-Redirect: If you visit this page and are ALREADY logged in, go to dashboard
   useEffect(() => {
     if (ready && authenticated) {
       router.push("/dashboard")
@@ -42,124 +38,132 @@ export default function Home() {
     <div className="relative min-h-screen overflow-hidden bg-background">
       <AnimatedBackground />
 
-      {/* STICKY HEADER */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-md border-b border-border/10 shadow-sm">
-        <div className="flex items-center gap-3">
-          <img
-            src="/images/design-mode/Verifly-2.png"
-            alt="Aegis Logo"
-            className="object-contain h-12 w-auto"
-          />
-        </div>
-
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#benefits" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-            Benefits
-          </a>
-          <a href="#trusted-by" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-            Trusted By
-          </a>
-          <a href="#documentation" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-            Documentation
-          </a>
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            className="hidden sm:flex border-primary/30 text-foreground hover:bg-primary hover:text-primary-foreground bg-transparent"
-            onClick={() => window.location.href = 'mailto:contact@aegis.com'}
-          >
-            Contact Us
-          </Button>
+      {/* HEADER: Taller (h-20) and aligned (max-w-7xl) */}
+      <header className="fixed top-0 z-50 w-full border-b border-primary/10 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+        {/* Changed container class to match section width exactly */}
+        <div className="mx-auto max-w-7xl px-6 lg:px-12 h-24 flex items-center justify-between">
           
-          {/* DYNAMIC HEADER BUTTONS */}
-          {ready && authenticated ? (
-            <div className="flex gap-2">
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                onClick={logout}
-                title="Click this to fix your 'stuck' state"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout (Fix)
-              </Button>
-              <Button 
-                className="bg-primary text-primary-foreground hover:bg-accent shadow-md"
-                onClick={() => router.push("/dashboard")}
-              >
-                Dashboard
-              </Button>
-            </div>
-          ) : (
-            <Button 
-              className="bg-primary text-primary-foreground hover:bg-accent shadow-md"
-              onClick={login}
-            >
-              Login
-            </Button>
-          )}
+          {/* Logo Section */}
+          <div className="flex items-center gap-3 transition-opacity hover:opacity-80">
+             <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-primary/10 border border-primary/20 shadow-[0_0_15px_-3px_var(--primary)]">
+                <img 
+                  src="/images/design-mode/Verifly-2.png" 
+                  alt="Aegis Logo" 
+                  className="h-7 w-auto object-contain"
+                />
+             </div>
+             <span className="font-bold text-xl tracking-tight text-foreground">Aegis</span>
+          </div>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center gap-10">
+            <a href="#benefits" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+              Benefits
+            </a>
+            <a href="#trusted-by" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+              Trusted By
+            </a>
+            <a href="#documentation" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+              Documentation
+            </a>
+          </nav>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-4">
+            {ready && authenticated ? (
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={logout}
+                  className="hidden sm:flex text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+                <Button 
+                  onClick={() => router.push("/dashboard")}
+                  className="h-10 px-6 gap-2 font-semibold bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:bg-primary/90 transition-all border border-primary/20 rounded-full"
+                >
+                  <Wallet className="h-4 w-4" />
+                  Dashboard
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button 
+                  onClick={login}
+                  className="h-10 px-6 gap-2 font-semibold bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:bg-primary/90 transition-all border border-primary/20 rounded-full"
+                >
+                  <Wallet className="h-4 w-4" />
+                  Connect Wallet
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative z-10 mx-auto max-w-7xl px-6 py-12 lg:px-12 lg:py-20">
+      <section className="relative z-10 mx-auto max-w-7xl px-6 py-32 lg:px-12 lg:py-40">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           <div className="flex flex-col justify-center space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm text-primary w-fit animate-fade-in">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-sm text-primary w-fit animate-fade-in backdrop-blur-sm">
               <Shield className="h-4 w-4" />
               Blockchain-Secured Authentication
             </div>
 
             <h1 className="text-balance text-5xl font-bold leading-tight tracking-tight text-foreground lg:text-7xl">
-              Verify Gold Instantly
+              Verify Gold <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-300">Instantly</span>
             </h1>
 
-            <p className="text-pretty text-lg leading-relaxed text-muted-foreground lg:text-xl">
+            <p className="text-pretty text-lg leading-relaxed text-muted-foreground lg:text-xl max-w-lg">
               Tap your phone to verify genuine gold bars with blockchain technology and NFC. Aegis provides instant
-              verification to protect your investment from counterfeit products.
+              verification to protect your investment.
             </p>
 
-            <div className="flex flex-col gap-4 sm:flex-row">
-              {/* DYNAMIC HERO BUTTON */}
-              {ready && authenticated ? (
-                <Button
-                  size="lg"
-                  className="bg-primary text-primary-foreground hover:bg-accent text-base h-12 px-8 shadow-lg transition-transform hover:scale-105"
-                  onClick={() => router.push("/dashboard")}
-                >
-                  Go to Dashboard
-                </Button>
-              ) : (
-                <Button
-                  size="lg"
-                  className="bg-primary text-primary-foreground hover:bg-accent text-base h-12 px-8 shadow-lg transition-transform hover:scale-105"
-                  onClick={login}
-                >
-                  Get Started
-                </Button>
-              )}
-              
+            <div className="flex flex-col gap-4 sm:flex-row pt-4">
+              <Button
+                size="lg"
+                className="bg-primary text-primary-foreground hover:bg-accent text-base h-12 px-8 shadow-xl shadow-primary/20 transition-all hover:scale-105 rounded-full"
+                onClick={ready && authenticated ? () => router.push("/dashboard") : login}
+              >
+                {ready && authenticated ? "Go to Dashboard" : "Get Started"}
+              </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-primary/30 text-foreground hover:bg-primary/10 text-base h-12 px-8 bg-transparent"
+                className="border-primary/30 text-foreground hover:bg-primary/5 text-base h-12 px-8 bg-transparent hover:border-primary/50 rounded-full"
                 onClick={handleReadWhitepaper}
               >
-                Learn More
+                Read Whitepaper
               </Button>
             </div>
           </div>
 
           <div className="relative flex items-center justify-center">
-            <div className="relative h-[500px] w-full max-w-lg">
-              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full opacity-30 transform translate-y-4"></div>
-              <img
-                src="/images/design-mode/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yM19hX3JlYWxfcGhvdG9fb2ZfZ29sZF9iYXJzXzQ0NDE0OTY2LTg5NjMtNGEwZi05YzMwLThjNDBlYzRmOTMzZl8xLmpwZw.jpg.webp"
-                alt="Gold Bars"
-                className="relative h-full w-full object-cover rounded-2xl shadow-2xl border border-white/10"
-              />
+            <div className="relative h-[500px] w-full max-w-lg animate-float">
+              {/* Gold Glow Behind Image */}
+              <div className="absolute inset-0 bg-primary/30 blur-[100px] rounded-full opacity-50 transform translate-y-10"></div>
+              
+              <div className="relative rounded-3xl border border-white/10 overflow-hidden shadow-2xl backdrop-blur-sm bg-white/5 p-2">
+                <img
+                  src="/images/design-mode/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yM19hX3JlYWxfcGhvdG9fb2ZfZ29sZF9iYXJzXzQ0NDE0OTY2LTg5NjMtNGEwZi05YzMwLThjNDBlYzRmOTMzZl8xLmpwZw.jpg.webp"
+                  alt="Gold Bars"
+                  className="relative h-full w-full object-cover rounded-2xl"
+                />
+                
+                {/* Floating Badge */}
+                <div className="absolute bottom-8 left-8 right-8 glass-card p-4 rounded-xl border border-white/20 bg-black/40 backdrop-blur-md flex items-center gap-4 animate-pulse">
+                  <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/50">
+                    <CheckCircle2 className="h-6 w-6 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white/80">Verification Status</p>
+                    <p className="text-base font-bold text-white">Authentic Gold</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -172,8 +176,8 @@ export default function Home() {
         </h2>
 
         <div className="grid gap-8 md:grid-cols-3">
-          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card/50 p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors border border-primary/20">
               <Smartphone className="h-8 w-8 text-primary" />
             </div>
             <h3 className="mb-3 text-xl font-semibold text-card-foreground">Tap Your Phone</h3>
@@ -182,8 +186,8 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card/50 p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors border border-primary/20">
               <Link2 className="h-8 w-8 text-primary" />
             </div>
             <h3 className="mb-3 text-xl font-semibold text-card-foreground">Blockchain Verification</h3>
@@ -193,8 +197,8 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card/50 p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors border border-primary/20">
               <CheckCircle2 className="h-8 w-8 text-primary" />
             </div>
             <h3 className="mb-3 text-xl font-semibold text-card-foreground">Instant Results</h3>
@@ -206,7 +210,7 @@ export default function Home() {
       </section>
 
       {/* TRUSTED BY SECTION */}
-      <section id="trusted-by" className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-12 bg-muted/30 rounded-3xl my-12">
+      <section id="trusted-by" className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-12 bg-muted/20 border-y border-border/20 my-12 backdrop-blur-sm">
         <h2 className="text-balance mb-12 text-center text-3xl font-bold tracking-tight">
           Trusted By Industry Leaders
         </h2>
@@ -215,10 +219,10 @@ export default function Home() {
           {[
             { src: "/images/design-mode/Logo-Lotus-Archi-Merah-1.png.webp", alt: "Lotus Archi" },
             { src: "/images/design-mode/ubs.png", alt: "UBS" },
-            { src: "/images/design-mode/antam-logo-png_seeklogo-352008.png", alt: "Antam" },
-            { src: "/images/design-mode/30f71-logo-pusatemas.id_.png", alt: "Pusatemas.id" },
+            { src: "/antam.jpg", alt: "Antam" },
+            { src: "/pusat emas.jpg", alt: "Pusatemas.id" },
           ].map((logo, index) => (
-            <div key={index} className="flex items-center justify-center p-6 grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100">
+            <div key={index} className="flex items-center justify-center p-6 grayscale hover:grayscale-0 transition-all duration-300 opacity-60 hover:opacity-100 hover:scale-105">
               <img
                 src={logo.src}
                 alt={logo.alt}
@@ -233,7 +237,7 @@ export default function Home() {
       <section id="documentation" className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-8 flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 border border-primary/20 shadow-lg shadow-primary/10">
               <FileText className="h-10 w-10 text-primary" />
             </div>
           </div>
@@ -250,7 +254,7 @@ export default function Home() {
           <Button
             size="lg"
             variant="outline"
-            className="border-primary text-primary hover:bg-primary hover:text-white gap-2"
+            className="border-primary text-primary hover:bg-primary hover:text-white gap-2 h-12 px-8 rounded-full"
             onClick={handleReadWhitepaper}
           >
             <FileText className="h-5 w-5" />
@@ -260,7 +264,7 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 border-t border-border bg-card py-12">
+      <footer className="relative z-10 border-t border-border/40 bg-card/50 py-12 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-6 lg:px-12">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-3">
