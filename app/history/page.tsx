@@ -1,21 +1,48 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Scan } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, ArrowDownLeft, ExternalLink } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase"
 
 export default function HistoryPage() {
   const { user, authenticated, ready } = usePrivy()
   const router = useRouter()
+  const [history, setHistory] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/")
     }
   }, [ready, authenticated, router])
+
+  useEffect(() => {
+    async function fetchHistory() {
+      if (!user?.wallet?.address) return
+
+      const { data, error } = await supabase
+        .from('transfer_history')
+        .select(`
+          *,
+          gold_items (serial_number, weight_grams)
+        `)
+        .or(`from_wallet.eq.${user.wallet.address},to_wallet.eq.${user.wallet.address}`)
+        .order('transfer_date', { ascending: false })
+
+      if (!error && data) {
+        setHistory(data)
+      }
+      setLoading(false)
+    }
+
+    if (authenticated) {
+      fetchHistory()
+    }
+  }, [authenticated, user?.wallet?.address])
 
   if (!ready || !authenticated) return null
 
@@ -49,18 +76,69 @@ export default function HistoryPage() {
 
       <main className="mx-auto max-w-4xl px-6 py-12 lg:px-12">
         <div className="mb-8">
-           <h1 className="text-3xl font-bold tracking-tight text-foreground">Activity</h1>
-           <p className="text-muted-foreground">View your recent scan history and verification logs.</p>
+           <h1 className="text-3xl font-bold tracking-tight text-foreground">Transaction History</h1>
+           <p className="text-muted-foreground">Blockchain record of your sent and received gold assets.</p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-12 text-center">
-          <Scan className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-bold text-foreground mb-2">No Activity Yet</h2>
-          <p className="text-muted-foreground mb-6">Start scanning gold bars to see your activity history</p>
-          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-             <Link href="/dashboard">Go to Dashboard</Link>
-          </Button>
-        </div>
+        {loading ? (
+           <div className="flex justify-center py-12">
+             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+           </div>
+        ) : history.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+            <div className="mx-auto h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <ArrowUpRight className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">No Transactions Yet</h2>
+            <p className="text-muted-foreground mb-6">Send or receive gold to see your history here.</p>
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+               <Link href="/dashboard">Go to Dashboard</Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {history.map((tx) => {
+              const isReceived = tx.to_wallet.toLowerCase() === user?.wallet?.address?.toLowerCase()
+              
+              return (
+                <div key={tx.id} className="group relative overflow-hidden rounded-xl border border-border bg-card p-5 hover:border-primary/50 transition-colors">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`rounded-full p-3 ${isReceived ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                        {isReceived ? <ArrowDownLeft className="h-6 w-6" /> : <ArrowUpRight className="h-6 w-6" />}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">
+                          {isReceived ? 'Received Gold' : 'Sent Gold'} 
+                          <span className="ml-2 text-sm font-normal text-muted-foreground">
+                            {tx.gold_items?.serial_number} ({tx.gold_items?.weight_grams}g)
+                          </span>
+                        </h3>
+                        <p className="text-sm text-muted-foreground font-mono mt-1">
+                          {isReceived ? `From: ${tx.from_wallet.slice(0, 8)}...` : `To: ${tx.to_wallet.slice(0, 8)}...`}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {new Date(tx.transfer_date).toLocaleDateString()}
+                      </p>
+                      <a 
+                        href={`https://sepolia.etherscan.io/tx/${tx.transaction_hash}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="inline-flex items-center text-xs text-primary hover:underline"
+                      >
+                        View on Block Explorer <ExternalLink className="ml-1 h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </main>
     </div>
   )

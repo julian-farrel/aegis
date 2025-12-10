@@ -11,35 +11,91 @@ import {
   History,
   Smartphone,
   TrendingUp,
-  AlertTriangle,
   Settings,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Copy,
+  AlertTriangle
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
 import Link from "next/link"
+import { QRCodeSVG } from "qrcode.react"
+import { supabase } from "@/lib/supabase"
+import { getEthereumContract, isValidAddress } from "@/lib/web3"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { toast } from "sonner"
 
 export default function Dashboard() {
   const { user, authenticated, ready, logout } = usePrivy()
+  const router = useRouter()
+
+  // -- Scan State --
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState<{
     status: "success" | "error" | "warning"
     message: string
     details?: any
   } | null>(null)
-  const router = useRouter()
+
+  // -- Wallet/Transfer State --
+  const [isReceiveOpen, setIsReceiveOpen] = useState(false)
+  const [isSendOpen, setIsSendOpen] = useState(false)
+  const [userGoldItems, setUserGoldItems] = useState<any[]>([])
+  const [selectedGoldId, setSelectedGoldId] = useState<string>("")
+  const [recipientAddress, setRecipientAddress] = useState("")
+  const [isProcessingTransfer, setIsProcessingTransfer] = useState(false)
   const [showOwnershipHistory, setShowOwnershipHistory] = useState(false)
 
+  // -- Auth Check --
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/")
     }
   }, [ready, authenticated, router])
 
+  // -- Fetch User's Gold Items --
+  useEffect(() => {
+    async function fetchUserGold() {
+      if (!user?.wallet?.address) return
+      
+      const { data, error } = await supabase
+        .from('gold_items')
+        .select('*')
+        .eq('owner_wallet', user.wallet.address)
+
+      if (data) {
+        setUserGoldItems(data)
+      }
+    }
+
+    if (authenticated) {
+      fetchUserGold()
+    }
+  }, [authenticated, user?.wallet?.address])
+
   const handleLogout = async () => {
     await logout()
     router.push("/")
   }
 
+  // -- NFC Scan Logic --
   const handleNFCScan = async () => {
     setIsScanning(true)
     setScanResult(null)
@@ -104,6 +160,94 @@ export default function Dashboard() {
     }, 2000)
   }
 
+  // -- Handle Smart Contract Transfer --
+  const handleSendGold = async () => {
+    if (!selectedGoldId || !recipientAddress || !user?.wallet?.address) {
+      toast.error("Please fill in all fields")
+      return
+    }
+
+    if (!isValidAddress(recipientAddress)) {
+      toast.error("Invalid wallet address")
+      return
+    }
+
+    // Retrieve the full item object to get its Token ID
+    const selectedItem = userGoldItems.find(item => item.id === selectedGoldId)
+    if (!selectedItem) {
+      toast.error("Gold item not found")
+      return
+    }
+
+    // Ensure database has token_id (added in previous step)
+    // If you haven't added `token_id` to Supabase yet, this check protects the app.
+    if (!selectedItem.token_id) {
+       toast.error("This item is not linked to the blockchain (missing Token ID).")
+       return
+    }
+
+    setIsProcessingTransfer(true)
+
+    try {
+      // 1. Interact with Smart Contract
+      const contract = await getEthereumContract()
+      
+      console.log(`Transferring Token ID ${selectedItem.token_id} to ${recipientAddress}`)
+      
+      // Call the `transferGold` function from your ABI
+      const tx = await contract.transferGold(recipientAddress, selectedItem.token_id)
+      
+      toast.info("Transaction submitted. Waiting for confirmation...")
+      await tx.wait()
+      
+      // 2. Update Supabase Database History
+      const { error: historyError } = await supabase.from('transfer_history').insert({
+        gold_item_id: selectedGoldId,
+        from_wallet: user.wallet.address,
+        to_wallet: recipientAddress,
+        transaction_hash: tx.hash,
+        verified: true
+      })
+
+      if (historyError) throw historyError
+
+      // 3. Update ownership of the item in DB
+      const { error: itemError } = await supabase
+        .from('gold_items')
+        .update({ owner_wallet: recipientAddress })
+        .eq('id', selectedGoldId)
+
+      if (itemError) throw itemError
+
+      toast.success("Gold transferred successfully on Blockchain!")
+      setIsSendOpen(false)
+      setRecipientAddress("")
+      setSelectedGoldId("")
+      
+      // Refresh list
+      const { data } = await supabase
+        .from('gold_items')
+        .select('*')
+        .eq('owner_wallet', user.wallet.address)
+      if (data) setUserGoldItems(data)
+
+    } catch (error: any) {
+      console.error("Transfer failed:", error)
+      // Parse MetaMask error if possible
+      const errorMessage = error.reason || error.message || "Transfer failed"
+      toast.error(errorMessage)
+    } finally {
+      setIsProcessingTransfer(false)
+    }
+  }
+
+  const copyAddress = () => {
+    if (user?.wallet?.address) {
+      navigator.clipboard.writeText(user.wallet.address)
+      toast.success("Address copied to clipboard")
+    }
+  }
+
   if (!ready || !authenticated) return null
 
   return (
@@ -124,7 +268,7 @@ export default function Dashboard() {
             <div className="hidden sm:flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 shadow-[0_0_15px_-5px_var(--primary)] transition-colors hover:bg-primary/15">
               <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
               <span className="font-mono text-xs font-medium text-primary">
-                {user?.wallet?.address || user?.email?.address}
+                {user?.wallet?.address?.slice(0, 6)}...{user?.wallet?.address?.slice(-4)}
               </span>
             </div>
 
@@ -147,12 +291,37 @@ export default function Dashboard() {
             Welcome back!
           </h1>
           <p className="text-muted-foreground">
-            Ready to verify your assets? Tap below to start.
+            Manage your gold assets and verify ownership.
           </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-8">
+            {/* Action Buttons: Send & Receive */}
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                onClick={() => setIsReceiveOpen(true)}
+                className="h-24 flex-col gap-2 text-lg bg-card border border-border hover:bg-accent hover:text-accent-foreground text-foreground shadow-sm"
+                variant="outline"
+              >
+                <div className="rounded-full bg-primary/10 p-3 text-primary">
+                  <ArrowDownLeft className="h-6 w-6" />
+                </div>
+                Receive Gold
+              </Button>
+              <Button 
+                onClick={() => setIsSendOpen(true)}
+                className="h-24 flex-col gap-2 text-lg bg-card border border-border hover:bg-accent hover:text-accent-foreground text-foreground shadow-sm"
+                variant="outline"
+              >
+                <div className="rounded-full bg-primary/10 p-3 text-primary">
+                  <ArrowUpRight className="h-6 w-6" />
+                </div>
+                Send Gold
+              </Button>
+            </div>
+
+            {/* Verification Section */}
             <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:border-primary/30 group">
               <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl transition-all group-hover:bg-primary/10" />
               
@@ -230,12 +399,6 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
-            
-            <div className="p-6 border border-dashed border-border/50 rounded-xl text-center text-muted-foreground bg-card/30">
-              <span className="flex items-center justify-center gap-2">
-                 <Shield className="h-4 w-4" /> Secure Gold List Component (Disabled for Demo)
-              </span>
-            </div>
           </div>
 
           <div className="space-y-6">
@@ -285,6 +448,103 @@ export default function Dashboard() {
         </div>
       </main>
 
+      {/* Receive Dialog */}
+      <Dialog open={isReceiveOpen} onOpenChange={setIsReceiveOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Receive Gold</DialogTitle>
+            <DialogDescription>
+              Scan this QR code to receive gold assets to your wallet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center p-6 space-y-4">
+            <div className="p-4 bg-white rounded-xl">
+              {user?.wallet?.address && (
+                <QRCodeSVG value={user.wallet.address} size={200} />
+              )}
+            </div>
+            <div className="flex items-center gap-2 w-full">
+              <div className="bg-muted p-3 rounded-lg text-xs font-mono break-all flex-1 text-center">
+                {user?.wallet?.address}
+              </div>
+              <Button size="icon" variant="outline" onClick={copyAddress}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+             <Button onClick={() => setIsReceiveOpen(false)} className="w-full">Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Dialog */}
+      <Dialog open={isSendOpen} onOpenChange={setIsSendOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Send Gold</DialogTitle>
+            <DialogDescription>
+              Transfer ownership of your gold assets to another wallet securely on the blockchain.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="gold-item">Select Gold Asset</Label>
+              <Select value={selectedGoldId} onValueChange={setSelectedGoldId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gold bar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {userGoldItems.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground">No gold assets found</div>
+                  ) : (
+                    userGoldItems.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.serial_number} - {item.weight_grams}g ({item.purity})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="recipient">Recipient Wallet Address</Label>
+              <Input
+                id="recipient"
+                placeholder="0x..."
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+              />
+            </div>
+
+            <div className="rounded-lg bg-yellow-500/10 p-4 border border-yellow-500/20">
+              <div className="flex gap-2">
+                <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0" />
+                <div className="text-xs text-yellow-600 dark:text-yellow-400">
+                  <p className="font-semibold">Irreversible Action</p>
+                  This transaction will be recorded on the blockchain and cannot be undone. Verify the address carefully.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSendOpen(false)}>Cancel</Button>
+            <Button onClick={handleSendGold} disabled={isProcessingTransfer}>
+              {isProcessingTransfer ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span> Processing...
+                </>
+              ) : (
+                "Confirm Transfer"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {showOwnershipHistory && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-card border border-border p-6 rounded-2xl max-w-md w-full">
