@@ -520,7 +520,7 @@ export default function Dashboard() {
                     <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
                        <History className="h-4 w-4" />
                     </div>
-                    View Scan History
+                    View History
                   </Link>
                 </Button>
                 
@@ -531,14 +531,6 @@ export default function Dashboard() {
                     </div>
                     Gold Market
                   </Link>
-                </Button>
-
-                {/* NEW: Mint Demo Button */}
-                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" onClick={handleMint} disabled={isMinting}>
-                    <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
-                       {isMinting ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"/> : <PlusCircle className="h-4 w-4" />}
-                    </div>
-                    {isMinting ? "Minting..." : "Mint Demo Gold (Testnet)"}
                 </Button>
 
                 <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" asChild>
