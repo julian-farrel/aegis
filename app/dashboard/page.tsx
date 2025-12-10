@@ -17,6 +17,7 @@ import {
   ExternalLink,
   History,
   X,
+  Wallet,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
@@ -82,7 +83,7 @@ export default function Dashboard() {
           status: isTampered ? "warning" : "success",
           message: isTampered ? "Warning: Packaging Opened" : "Gold bar authenticated!",
           details: {
-            image: "/images/antam-emas-antam-10-gr-sertifikat-press-certieye-full03-p692qzhk.webp",
+            image: "aegis gold.jpeg",
             serialNumber: scannedSerial,
             weight: "10",
             purity: "99.99",
@@ -112,75 +113,94 @@ export default function Dashboard() {
   if (!ready || !authenticated) return null
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-border bg-card border-b-0">
-        <div className="max-w-full pl-0 pr-6 py-2 lg:pr-12">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/images/design-mode/Verifly-2(1).png" alt="Aegis Logo" className="object-contain w-52 h-40" />
+    <div className="min-h-screen bg-background selection:bg-primary/20">
+      {/* Header - Fixed & Compact */}
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-12">
+          {/* Logo Section */}
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              {/* Added gold drop-shadow for visibility */}
+              <img 
+                src="aegis.png" 
+                alt="Aegis Logo" 
+                className="h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-transform hover:scale-105" 
+              />
+            </div>
+          </div>
+
+          {/* Right Section: Wallet & Logout */}
+          <div className="flex items-center gap-4">
+            {/* Wallet Address Highlight */}
+            <div className="hidden sm:flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 shadow-[0_0_15px_-5px_var(--primary)] transition-colors hover:bg-primary/15">
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
+              <span className="font-mono text-xs font-medium text-primary">
+                {user?.wallet?.address || user?.email?.address}
+              </span>
             </div>
 
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground truncate max-w-[150px]">
-                {user?.email?.address || user?.wallet?.address}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="border-border text-foreground hover:bg-muted bg-transparent"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:bg-red-500/10 hover:text-red-500"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-6 py-12 lg:px-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Welcome!</h1>
-          <p className="text-lg text-muted-foreground">Scan your gold bars to verify authenticity</p>
+      <main className="mx-auto max-w-7xl px-6 py-8 lg:px-12">
+        <div className="mb-8 flex flex-col gap-2">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Welcome back!
+          </h1>
+          <p className="text-muted-foreground">
+            Ready to verify your assets? Tap below to start.
+          </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Scan Section */}
-          <div className="lg:col-span-2">
-            <div className="rounded-2xl border border-border bg-card p-8">
-              <div className="text-center">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:border-primary/30 group">
+              {/* Background gradient effect */}
+              <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl transition-all group-hover:bg-primary/10" />
+              
+              <div className="relative text-center">
                 <div className="mb-6 flex justify-center">
-                  <div className="rounded-full bg-primary/10 p-8">
-                    <Smartphone className="h-16 w-16 text-primary" />
+                  <div className="rounded-full bg-gradient-to-br from-primary/20 to-transparent p-6 ring-1 ring-primary/30">
+                    <Smartphone className="h-12 w-12 text-primary drop-shadow-[0_0_8px_rgba(212,175,55,0.5)]" />
                   </div>
                 </div>
 
                 <h2 className="text-2xl font-bold text-card-foreground mb-3">NFC Gold Verification</h2>
-                <p className="text-muted-foreground mb-8">
-                  Tap your phone to the gold bar packaging to verify authenticity
+                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                  Hold your device near the gold bar packaging to instantly verify its authenticity on the blockchain.
                 </p>
 
                 <Button
                   size="lg"
                   onClick={handleNFCScan}
                   disabled={isScanning}
-                  className="bg-primary text-primary-foreground hover:bg-accent w-full max-w-sm h-14 text-lg gap-3"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] w-full max-w-sm h-14 text-lg gap-3 shadow-[0_0_20px_-5px_var(--primary)] transition-all"
                 >
                   <Scan className={`h-6 w-6 ${isScanning ? "animate-pulse" : ""}`} />
                   {isScanning ? "Scanning..." : "Start NFC Scan"}
                 </Button>
 
                 {scanResult && (
-                  <div className={`mt-8 rounded-xl border p-6 text-left ${
-                      scanResult.status === "success" ? "border-green-500/50 bg-green-500/10" : 
-                      scanResult.status === "warning" ? "border-yellow-500/50 bg-yellow-500/10" : 
-                      "border-red-500/50 bg-red-500/10"
+                  <div className={`mt-8 rounded-xl border p-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 ${
+                      scanResult.status === "success" ? "border-green-500/30 bg-green-500/5" : 
+                      scanResult.status === "warning" ? "border-yellow-500/30 bg-yellow-500/5" : 
+                      "border-red-500/30 bg-red-500/5"
                     }`}>
                     <div className="flex items-start gap-4 mb-6">
                       {scanResult.status === "success" ? (
-                        <CheckCircle2 className="h-8 w-8 text-green-500 shrink-0 mt-1" />
+                        <CheckCircle2 className="h-8 w-8 text-green-500 shrink-0 mt-1 drop-shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
                       ) : scanResult.status === "warning" ? (
                         <AlertTriangle className="h-8 w-8 text-yellow-500 shrink-0 mt-1" />
                       ) : (
@@ -203,17 +223,20 @@ export default function Dashboard() {
                             <img
                               src={scanResult.details.image}
                               alt="Gold Bar"
-                              className="max-w-xs rounded-lg border-2 border-primary/30"
+                              className="max-w-xs rounded-lg border border-border shadow-lg"
                             />
                           </div>
                         )}
                         
                         <div className="grid gap-4 sm:grid-cols-2">
-                           <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Serial Number</p>
-                            <p className="text-sm font-bold text-foreground">{scanResult.details.serialNumber}</p>
+                           <div className="space-y-1 rounded-lg bg-background/50 p-3">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">Serial Number</p>
+                            <p className="text-sm font-bold text-foreground font-mono">{scanResult.details.serialNumber}</p>
                           </div>
-                          {/* Add other details as needed */}
+                           <div className="space-y-1 rounded-lg bg-background/50 p-3">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">Status</p>
+                            <p className="text-sm font-bold text-foreground">{scanResult.details.status}</p>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -222,30 +245,41 @@ export default function Dashboard() {
               </div>
             </div>
             
-            <div className="mt-8 p-6 border border-dashed border-border rounded-xl text-center text-muted-foreground">
-              (Gold List Component Disabled for Demo)
+            <div className="p-6 border border-dashed border-border/50 rounded-xl text-center text-muted-foreground bg-card/30">
+              <span className="flex items-center justify-center gap-2">
+                 <Shield className="h-4 w-4" /> Secure Gold List Component (Disabled for Demo)
+              </span>
             </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h3 className="text-lg font-bold text-card-foreground mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <Button variant="outline" className="w-full justify-start bg-transparent" onClick={() => router.push("/history")}>
-                  <FileText className="mr-2 h-4 w-4" /> View History
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Quick Actions</h3>
+              <div className="space-y-2">
+                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" onClick={() => router.push("/history")}>
+                  <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
+                     <History className="h-4 w-4" />
+                  </div>
+                  View Scan History
                 </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <Settings className="mr-2 h-4 w-4" /> Settings
+                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted">
+                  <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
+                     <Settings className="h-4 w-4" />
+                  </div>
+                  Settings
                 </Button>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-6">
-              <Shield className="h-8 w-8 text-primary mb-3" />
-              <h3 className="text-lg font-bold text-foreground mb-2">Protected by Blockchain</h3>
-              <p className="text-sm text-muted-foreground">
-                Every scan is verified against our immutable distributed ledger
+            <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-6 relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 text-primary/5">
+                 <Shield className="h-32 w-32" />
+              </div>
+              <Shield className="h-8 w-8 text-primary mb-3 relative z-10" />
+              <h3 className="text-lg font-bold text-foreground mb-2 relative z-10">Protected by Blockchain</h3>
+              <p className="text-sm text-muted-foreground relative z-10">
+                Every scan is verified against our immutable distributed ledger, ensuring 100% authenticity.
               </p>
             </div>
           </div>
@@ -254,9 +288,15 @@ export default function Dashboard() {
 
       {/* History Modal Logic */}
       {showOwnershipHistory && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-            {/* Modal content */}
-            <Button onClick={() => setShowOwnershipHistory(false)}>Close</Button>
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-card border border-border p-6 rounded-2xl max-w-md w-full">
+                <h3 className="text-lg font-bold mb-4">Ownership History</h3>
+                <div className="space-y-4 mb-6">
+                   {/* Placeholder content */}
+                   <p className="text-sm text-muted-foreground">No additional history available.</p>
+                </div>
+                <Button className="w-full" onClick={() => setShowOwnershipHistory(false)}>Close</Button>
+            </div>
          </div>
       )}
     </div>
