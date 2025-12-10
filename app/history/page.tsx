@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Scan } from "lucide-react"
 import { useRouter } from "next/navigation"
-// REMOVED: Supabase client import
 
 export default function HistoryPage() {
   const [user, setUser] = useState<any>(null)
@@ -18,7 +17,6 @@ export default function HistoryPage() {
       router.push("/")
     } else {
       setUser(JSON.parse(userData))
-      // Load fake history or empty
       setIsLoading(false)
       setHistory([]) 
     }

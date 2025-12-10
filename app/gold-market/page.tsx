@@ -18,28 +18,28 @@ export default function GoldMarketPage() {
   const distributorPrices = [
     {
       name: 'PT Aneka Tambang (Antam)',
-      logo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/antam-logo-png_seeklogo-352008-JbdHlIj2EPMSg7qfsxla3b6gCKgfk2.png',
+      logo: 'antam.png',
       buyPrice: currency === 'USD' ? 2045 : 32_480_000,
       sellPrice: currency === 'USD' ? 2042 : 32_432_000,
       change: +0.58
     },
     {
       name: 'UBS Gold Bar',
-      logo: '/images/ubs.png',
+      logo: 'ubs clear.png',
       buyPrice: currency === 'USD' ? 2046 : 32_496_000,
       sellPrice: currency === 'USD' ? 2041 : 32_416_000,
       change: +0.65
     },
     {
       name: 'Lotus Archi',
-      logo: '/images/logo-lotus-archi-merah-1.webp',
+      logo: 'lotusarchi.webp',
       buyPrice: currency === 'USD' ? 2044 : 32_464_000,
       sellPrice: currency === 'USD' ? 2040 : 32_400_000,
       change: +0.52
     },
     {
       name: 'Pusat Emas',
-      logo: '/images/30f71-logo.png',
+      logo: 'pusatemas.webp',
       buyPrice: currency === 'USD' ? 2047 : 32_512_000,
       sellPrice: currency === 'USD' ? 2043 : 32_448_000,
       change: +0.70

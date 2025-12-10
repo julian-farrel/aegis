@@ -33,7 +33,6 @@ export default function Dashboard() {
   const router = useRouter()
   const [showOwnershipHistory, setShowOwnershipHistory] = useState(false)
 
-  // Redirect to Home if NOT logged in
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/")
@@ -109,18 +108,14 @@ export default function Dashboard() {
     }, 2000)
   }
 
-  // If loading or not authenticated, show nothing (or loading spinner)
   if (!ready || !authenticated) return null
 
   return (
     <div className="min-h-screen bg-background selection:bg-primary/20">
-      {/* Header - Fixed & Compact */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-12">
-          {/* Logo Section */}
           <div className="flex items-center gap-3">
             <div className="relative">
-              {/* Added gold drop-shadow for visibility */}
               <img 
                 src="aegis.png" 
                 alt="Aegis Logo" 
@@ -129,9 +124,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Right Section: Wallet & Logout */}
           <div className="flex items-center gap-4">
-            {/* Wallet Address Highlight */}
             <div className="hidden sm:flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 shadow-[0_0_15px_-5px_var(--primary)] transition-colors hover:bg-primary/15">
               <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
               <span className="font-mono text-xs font-medium text-primary">
@@ -164,10 +157,8 @@ export default function Dashboard() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Scan Section */}
           <div className="lg:col-span-2 space-y-8">
             <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:border-primary/30 group">
-              {/* Background gradient effect */}
               <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl transition-all group-hover:bg-primary/10" />
               
               <div className="relative text-center">
@@ -252,17 +243,24 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
               <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Quick Actions</h3>
               <div className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" onClick={() => router.push("/history")}>
+                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" onClick={() => router.push("history")}>
                   <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
                      <History className="h-4 w-4" />
                   </div>
                   View Scan History
                 </Button>
+                
+                <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted" onClick={() => router.push("/gold-market")}>
+                  <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
+                     <TrendingUp className="h-4 w-4" />
+                  </div>
+                  Gold Market
+                </Button>
+
                 <Button variant="ghost" className="w-full justify-start h-12 text-foreground hover:bg-muted">
                   <div className="mr-3 rounded-full bg-primary/10 p-2 text-primary">
                      <Settings className="h-4 w-4" />
@@ -286,13 +284,11 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* History Modal Logic */}
       {showOwnershipHistory && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-card border border-border p-6 rounded-2xl max-w-md w-full">
                 <h3 className="text-lg font-bold mb-4">Ownership History</h3>
                 <div className="space-y-4 mb-6">
-                   {/* Placeholder content */}
                    <p className="text-sm text-muted-foreground">No additional history available.</p>
                 </div>
                 <Button className="w-full" onClick={() => setShowOwnershipHistory(false)}>Close</Button>
