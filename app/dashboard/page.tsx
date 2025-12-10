@@ -19,12 +19,10 @@ import {
   X,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-// REMOVED: MyGoldsList import
-// REMOVED: Supabase client import
-// REMOVED: NotificationsBell import
+import { usePrivy } from "@privy-io/react-auth"
 
 export default function Dashboard() {
-  const [user, setUser] = useState<any>(null)
+  const { user, authenticated, ready, logout } = usePrivy()
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState<{
     status: "success" | "error" | "warning"
@@ -33,23 +31,18 @@ export default function Dashboard() {
   } | null>(null)
   const router = useRouter()
   const [showOwnershipHistory, setShowOwnershipHistory] = useState(false)
-  // REMOVED: goldRefreshTrigger state
 
+  // Redirect to Home if NOT logged in
   useEffect(() => {
-    const userData = localStorage.getItem("aegis_user")
-    if (!userData) {
+    if (ready && !authenticated) {
       router.push("/")
-    } else {
-      setUser(JSON.parse(userData))
     }
-  }, [router])
+  }, [ready, authenticated, router])
 
-  const handleLogout = () => {
-    localStorage.removeItem("aegis_user")
+  const handleLogout = async () => {
+    await logout()
     router.push("/")
   }
-
-  // REMOVED: handleGoldAccepted function
 
   const handleNFCScan = async () => {
     setIsScanning(true)
@@ -57,13 +50,11 @@ export default function Dashboard() {
 
     setTimeout(async () => {
       try {
-        // MOCKED: Removed Supabase logic. Using local simulation only.
         const simulatedSerialNumbers = ["LA000001", "AG000001", "AG000002", "UB000001", "FAKE123", "AG000003"]
         const scannedSerial = simulatedSerialNumbers[Math.floor(Math.random() * simulatedSerialNumbers.length)]
 
         console.log("[Demo] Scanned serial number:", scannedSerial)
 
-        // Simulate "Not Found" for specific serial
         if (scannedSerial === "FAKE123") {
            setScanResult({
             status: "error",
@@ -78,7 +69,6 @@ export default function Dashboard() {
           return
         }
 
-        // Simulate Success
         const isTampered = Math.random() > 0.7
         const ownershipHistory = [
           {
@@ -98,7 +88,7 @@ export default function Dashboard() {
             purity: "99.99",
             company: "Antam",
             verifiedOn: new Date().toLocaleString(),
-            currentOwner: user?.wallet || "0xDemoWallet...",
+            currentOwner: user?.wallet?.address || "0xDemoWallet...",
             status: isTampered ? "PACKAGING OPENED" : "SEALED",
             hash: "0x123...abc",
             ownershipHistory: ownershipHistory,
@@ -118,7 +108,8 @@ export default function Dashboard() {
     }, 2000)
   }
 
-  if (!user) return null
+  // If loading or not authenticated, show nothing (or loading spinner)
+  if (!ready || !authenticated) return null
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,8 +122,9 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* REMOVED: NotificationsBell Component */}
-              <span className="text-sm text-muted-foreground">{user.email || user.wallet}</span>
+              <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                {user?.email?.address || user?.wallet?.address}
+              </span>
               <Button
                 variant="outline"
                 size="sm"
@@ -150,7 +142,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-6 py-12 lg:px-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Welcome back{user.name ? `, ${user.name}` : ""}!</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Welcome!</h1>
           <p className="text-lg text-muted-foreground">Scan your gold bars to verify authenticity</p>
         </div>
 
@@ -180,7 +172,6 @@ export default function Dashboard() {
                   {isScanning ? "Scanning..." : "Start NFC Scan"}
                 </Button>
 
-                {/* Scan Results Display Code (Unchanged) */}
                 {scanResult && (
                   <div className={`mt-8 rounded-xl border p-6 text-left ${
                       scanResult.status === "success" ? "border-green-500/50 bg-green-500/10" : 
@@ -188,40 +179,86 @@ export default function Dashboard() {
                       "border-red-500/50 bg-red-500/10"
                     }`}>
                     <div className="flex items-start gap-4 mb-6">
-                       {/* Simplified for brevity - reuse the original result display logic here */}
-                       <div className="flex-1">
-                        <h3 className="text-xl font-bold">{scanResult.message}</h3>
-                        {/* Display other details normally */}
-                       </div>
+                      {scanResult.status === "success" ? (
+                        <CheckCircle2 className="h-8 w-8 text-green-500 shrink-0 mt-1" />
+                      ) : scanResult.status === "warning" ? (
+                        <AlertTriangle className="h-8 w-8 text-yellow-500 shrink-0 mt-1" />
+                      ) : (
+                        <XCircle className="h-8 w-8 text-red-500 shrink-0 mt-1" />
+                      )}
+                      <div className="flex-1">
+                        <h3 className={`text-xl font-bold ${
+                            scanResult.status === "success" ? "text-green-500" : 
+                            scanResult.status === "warning" ? "text-yellow-500" : "text-red-500"
+                          }`}>
+                          {scanResult.message}
+                        </h3>
+                      </div>
                     </div>
-                     {/* Reuse the rest of the display logic from your original file... */}
+
+                    {scanResult.details && (
+                      <div className="space-y-6">
+                        {scanResult.details.image && (
+                          <div className="flex justify-center">
+                            <img
+                              src={scanResult.details.image}
+                              alt="Gold Bar"
+                              className="max-w-xs rounded-lg border-2 border-primary/30"
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="grid gap-4 sm:grid-cols-2">
+                           <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Serial Number</p>
+                            <p className="text-sm font-bold text-foreground">{scanResult.details.serialNumber}</p>
+                          </div>
+                          {/* Add other details as needed */}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             </div>
-
-            {/* REMOVED: MyGoldsList Component */}
+            
             <div className="mt-8 p-6 border border-dashed border-border rounded-xl text-center text-muted-foreground">
-              (Gold List Component Removed)
+              (Gold List Component Disabled for Demo)
             </div>
           </div>
 
-          {/* Sidebar (Unchanged) */}
+          {/* Sidebar */}
           <div className="space-y-6">
             <div className="rounded-2xl border border-border bg-card p-6">
               <h3 className="text-lg font-bold text-card-foreground mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <Button variant="outline" className="w-full justify-start bg-transparent" onClick={() => router.push("/")}>
-                  <Home className="mr-2 h-4 w-4" /> Back to Home
+                <Button variant="outline" className="w-full justify-start bg-transparent" onClick={() => router.push("/history")}>
+                  <FileText className="mr-2 h-4 w-4" /> View History
                 </Button>
-                {/* Other buttons... */}
+                <Button variant="outline" className="w-full justify-start bg-transparent">
+                  <Settings className="mr-2 h-4 w-4" /> Settings
+                </Button>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-6">
+              <Shield className="h-8 w-8 text-primary mb-3" />
+              <h3 className="text-lg font-bold text-foreground mb-2">Protected by Blockchain</h3>
+              <p className="text-sm text-muted-foreground">
+                Every scan is verified against our immutable distributed ledger
+              </p>
             </div>
           </div>
         </div>
       </main>
-      
-      {/* Ownership History Modal (Unchanged) */}
+
+      {/* History Modal Logic */}
+      {showOwnershipHistory && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+            {/* Modal content */}
+            <Button onClick={() => setShowOwnershipHistory(false)}>Close</Button>
+         </div>
+      )}
     </div>
   )
 }

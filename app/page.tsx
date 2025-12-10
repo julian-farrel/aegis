@@ -1,17 +1,30 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Shield, Smartphone, Link2, CheckCircle2, FileText } from "lucide-react"
+import { Shield, Smartphone, Link2, CheckCircle2, FileText, LogOut } from "lucide-react"
 import AnimatedBackground from "@/components/animated-background"
-import { usePrivy } from "@privy-io/react-auth"
+import { usePrivy, useLogin } from "@privy-io/react-auth"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
 export default function Home() {
-  const { login, authenticated, ready } = usePrivy()
   const router = useRouter()
+  
+  // 1. Hook to handle the "Login" action (e.g., when clicking the button)
+  const { login } = useLogin({
+    onComplete: () => {
+      // Runs immediately after a successful login flow
+      router.push("/dashboard")
+    },
+    onError: (error) => {
+      console.error("Login error:", error)
+    }
+  })
 
-  // Automatically redirect if user is already logged in
+  // 2. Hook to check current status (e.g., if you refresh the page)
+  const { ready, authenticated, logout } = usePrivy()
+
+  // 3. Auto-Redirect: If you visit this page and are ALREADY logged in, go to dashboard
   useEffect(() => {
     if (ready && authenticated) {
       router.push("/dashboard")
@@ -29,13 +42,13 @@ export default function Home() {
     <div className="relative min-h-screen overflow-hidden bg-background">
       <AnimatedBackground />
 
-      {/* STICKY HEADER SECTION */}
+      {/* STICKY HEADER */}
       <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-md border-b border-border/10 shadow-sm">
         <div className="flex items-center gap-3">
           <img
             src="/images/design-mode/Verifly-2.png"
             alt="Aegis Logo"
-            className="object-contain h-12 w-auto" // Adjusted size for better sticky header fit
+            className="object-contain h-12 w-auto"
           />
         </div>
 
@@ -60,19 +73,39 @@ export default function Home() {
             Contact Us
           </Button>
           
-          <Button 
-            className="bg-primary text-primary-foreground hover:bg-accent shadow-md"
-            onClick={login}
-          >
-            Login
-          </Button>
+          {/* DYNAMIC HEADER BUTTONS */}
+          {ready && authenticated ? (
+            <div className="flex gap-2">
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={logout}
+                title="Click this to fix your 'stuck' state"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout (Fix)
+              </Button>
+              <Button 
+                className="bg-primary text-primary-foreground hover:bg-accent shadow-md"
+                onClick={() => router.push("/dashboard")}
+              >
+                Dashboard
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              className="bg-primary text-primary-foreground hover:bg-accent shadow-md"
+              onClick={login}
+            >
+              Login
+            </Button>
+          )}
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* HERO SECTION */}
       <section className="relative z-10 mx-auto max-w-7xl px-6 py-12 lg:px-12 lg:py-20">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
-          {/* Left Content */}
           <div className="flex flex-col justify-center space-y-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm text-primary w-fit animate-fade-in">
               <Shield className="h-4 w-4" />
@@ -89,13 +122,25 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button
-                size="lg"
-                className="bg-primary text-primary-foreground hover:bg-accent text-base h-12 px-8 shadow-lg transition-transform hover:scale-105"
-                onClick={login} // CONNECTED TO PRIVY
-              >
-                Get Started
-              </Button>
+              {/* DYNAMIC HERO BUTTON */}
+              {ready && authenticated ? (
+                <Button
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-accent text-base h-12 px-8 shadow-lg transition-transform hover:scale-105"
+                  onClick={() => router.push("/dashboard")}
+                >
+                  Go to Dashboard
+                </Button>
+              ) : (
+                <Button
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-accent text-base h-12 px-8 shadow-lg transition-transform hover:scale-105"
+                  onClick={login}
+                >
+                  Get Started
+                </Button>
+              )}
+              
               <Button
                 size="lg"
                 variant="outline"
@@ -107,10 +152,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Visual */}
           <div className="relative flex items-center justify-center">
             <div className="relative h-[500px] w-full max-w-lg">
-               {/* Added a decorative glow effect behind the image */}
               <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full opacity-30 transform translate-y-4"></div>
               <img
                 src="/images/design-mode/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yM19hX3JlYWxfcGhvdG9fb2ZfZ29sZF9iYXJzXzQ0NDE0OTY2LTg5NjMtNGEwZi05YzMwLThjNDBlYzRmOTMzZl8xLmpwZw.jpg.webp"
@@ -122,14 +165,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* HOW IT WORKS SECTION */}
       <section id="benefits" className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-12">
         <h2 className="text-balance mb-16 text-center text-4xl font-bold tracking-tight lg:text-5xl">
           <span className="text-foreground">How It Works</span>
         </h2>
 
         <div className="grid gap-8 md:grid-cols-3">
-          {/* Step 1 */}
           <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <Smartphone className="h-8 w-8 text-primary" />
@@ -140,7 +182,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Step 2 */}
           <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <Link2 className="h-8 w-8 text-primary" />
@@ -152,7 +193,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Step 3 */}
           <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <CheckCircle2 className="h-8 w-8 text-primary" />
@@ -165,7 +205,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trusted By Section */}
+      {/* TRUSTED BY SECTION */}
       <section id="trusted-by" className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-12 bg-muted/30 rounded-3xl my-12">
         <h2 className="text-balance mb-12 text-center text-3xl font-bold tracking-tight">
           Trusted By Industry Leaders
@@ -189,7 +229,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Documentation Section */}
+      {/* DOCUMENTATION SECTION */}
       <section id="documentation" className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-8 flex justify-center">
@@ -219,7 +259,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* FOOTER */}
       <footer className="relative z-10 border-t border-border bg-card py-12">
         <div className="mx-auto max-w-7xl px-6 lg:px-12">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
@@ -228,7 +268,7 @@ export default function Home() {
               <span className="text-xl font-bold text-card-foreground">Aegis</span>
             </div>
             <p className="text-sm text-muted-foreground text-center md:text-right">
-              © 2025 Aegis. All rights reserved.<br/>Secured by blockchain technology.
+              © 2025 Aegis. All rights reserved.
             </p>
           </div>
         </div>
