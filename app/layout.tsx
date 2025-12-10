@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: 'Aegis - Gold Authentication via Blockchain & NFC',
   description: 'Verify gold bar authenticity instantly using blockchain technology.',
   icons: {
-    icon: '/images/design-mode/Verifly-2.png',
+    icon: '/aegis.png',
   },
 }
 

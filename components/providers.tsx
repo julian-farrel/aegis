@@ -9,9 +9,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       config={{
         loginMethods: ["wallet"],
         appearance: {
-          theme: "light",
+          theme: "dark",
           accentColor: "#676FFF",
-          logo: "/images/design-mode/Verifly-2.png",
+          logo: "aegis.png",
         },
       }}
     >

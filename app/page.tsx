@@ -38,16 +38,14 @@ export default function Home() {
     <div className="relative min-h-screen overflow-hidden bg-background">
       <AnimatedBackground />
 
-      {/* HEADER: Taller (h-20) and aligned (max-w-7xl) */}
       <header className="fixed top-0 z-50 w-full border-b border-primary/10 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-        {/* Changed container class to match section width exactly */}
         <div className="mx-auto max-w-7xl px-6 lg:px-12 h-24 flex items-center justify-between">
           
           {/* Logo Section */}
           <div className="flex items-center gap-3 transition-opacity hover:opacity-80">
              <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-primary/10 border border-primary/20 shadow-[0_0_15px_-3px_var(--primary)]">
                 <img 
-                  src="/images/design-mode/Verifly-2.png" 
+                  src="aegis.png" 
                   alt="Aegis Logo" 
                   className="h-7 w-auto object-contain"
                 />
@@ -148,7 +146,7 @@ export default function Home() {
               
               <div className="relative rounded-3xl border border-white/10 overflow-hidden shadow-2xl backdrop-blur-sm bg-white/5 p-2">
                 <img
-                  src="/images/design-mode/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yM19hX3JlYWxfcGhvdG9fb2ZfZ29sZF9iYXJzXzQ0NDE0OTY2LTg5NjMtNGEwZi05YzMwLThjNDBlYzRmOTMzZl8xLmpwZw.jpg.webp"
+                  src="gold.jpg"
                   alt="Gold Bars"
                   className="relative h-full w-full object-cover rounded-2xl"
                 />
@@ -210,26 +208,43 @@ export default function Home() {
       </section>
 
       {/* TRUSTED BY SECTION */}
-      <section id="trusted-by" className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-12 bg-muted/20 border-y border-border/20 my-12 backdrop-blur-sm">
-        <h2 className="text-balance mb-12 text-center text-3xl font-bold tracking-tight">
-          Trusted By Industry Leaders
+     <section id="trusted-by" className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-12">
+        <h2 className="text-balance mb-12 text-center text-4xl font-bold tracking-tight">
+          <span className="text-foreground">Trusted By </span>
         </h2>
 
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-12 items-center">
-          {[
-            { src: "/images/design-mode/Logo-Lotus-Archi-Merah-1.png.webp", alt: "Lotus Archi" },
-            { src: "/images/design-mode/ubs.png", alt: "UBS" },
-            { src: "/antam.jpg", alt: "Antam" },
-            { src: "/pusat emas.jpg", alt: "Pusatemas.id" },
-          ].map((logo, index) => (
-            <div key={index} className="flex items-center justify-center p-6 grayscale hover:grayscale-0 transition-all duration-300 opacity-60 hover:opacity-100 hover:scale-105">
-              <img
-                src={logo.src}
-                alt={logo.alt}
-                className="h-12 w-auto object-contain"
-              />
-            </div>
-          ))}
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-12">
+          <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50">
+            <img
+              src="lotusarchi.webp"
+              alt="Lotus Archi"
+              className="object-contain transition-all hover:scale-110 w-80 h-48"
+            />
+          </div>
+
+          <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50">
+            <img
+              src="ubs clear.png"
+              alt="UBS"
+              className="object-contain transition-all hover:scale-110 w-80 h-48"
+            />
+          </div>
+
+          <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50">
+            <img
+              src="antam.png"
+              alt="Antam"
+              className="object-contain transition-all hover:scale-110 w-80 h-48"
+            />
+          </div>
+
+          <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50">
+            <img
+              src="pusatemas.webp"
+              alt="Pusatemas.id"
+              className="object-contain transition-all hover:scale-110 w-80 h-48"
+            />
+          </div>
         </div>
       </section>
 
@@ -268,7 +283,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 lg:px-12">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-3">
-              <img src="/images/design-mode/Verifly-2.png" alt="Aegis Logo" className="h-8 w-auto object-contain" />
+              <img src="aegis.png" alt="Aegis Logo" className="h-8 w-auto object-contain" />
               <span className="text-xl font-bold text-card-foreground">Aegis</span>
             </div>
             <p className="text-sm text-muted-foreground text-center md:text-right">
