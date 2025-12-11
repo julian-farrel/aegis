@@ -16,6 +16,7 @@ import {
   ArrowDownLeft,
   Copy,
   AlertTriangle,
+  Coins,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
@@ -47,7 +48,6 @@ export default function Dashboard() {
   const { user, authenticated, ready, logout } = usePrivy()
   const router = useRouter()
 
-  // -- Scan State --
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState<{
     status: "success" | "error" | "warning"
@@ -55,7 +55,6 @@ export default function Dashboard() {
     details?: any
   } | null>(null)
 
-  // -- Wallet/Transfer State --
   const [isReceiveOpen, setIsReceiveOpen] = useState(false)
   const [isSendOpen, setIsSendOpen] = useState(false)
   const [userGoldItems, setUserGoldItems] = useState<any[]>([])
@@ -64,17 +63,14 @@ export default function Dashboard() {
   const [isProcessingTransfer, setIsProcessingTransfer] = useState(false)
   const [showOwnershipHistory, setShowOwnershipHistory] = useState(false)
   
-  // New State for Minting
   const [isMinting, setIsMinting] = useState(false)
 
-  // -- Auth Check --
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/")
     }
   }, [ready, authenticated, router])
 
-  // -- Sync User to Database on Login --
   useEffect(() => {
     async function syncUserToDb() {
       if (ready && authenticated && user?.wallet?.address) {
@@ -102,7 +98,6 @@ export default function Dashboard() {
     syncUserToDb()
   }, [ready, authenticated, user?.wallet?.address])
 
-  // -- Fetch User's Gold Items --
   useEffect(() => {
     async function fetchUserGold() {
       if (!user?.wallet?.address) return
@@ -127,7 +122,6 @@ export default function Dashboard() {
     router.push("/")
   }
 
-  // -- Mint Function --
   const handleMint = async () => {
     if (!user?.wallet?.address) return
     setIsMinting(true)
@@ -196,7 +190,6 @@ export default function Dashboard() {
     }
   }
 
-  // -- NFC Scan Logic --
   const handleNFCScan = async () => {
     setIsScanning(true)
     setScanResult(null)
@@ -259,7 +252,6 @@ export default function Dashboard() {
     }, 2000)
   }
 
-  // -- Handle Smart Contract Transfer (Robust Version) --
   const handleSendGold = async () => {
     if (!selectedGoldId || !recipientAddress || !user?.wallet?.address) {
       toast.error("Please fill in all fields")
@@ -277,7 +269,6 @@ export default function Dashboard() {
       return
     }
 
-    // Ensure valid Token ID
     if (selectedItem.token_id === null || selectedItem.token_id === undefined) {
        toast.error("This item is not linked to the blockchain (missing Token ID).")
        return
@@ -286,8 +277,6 @@ export default function Dashboard() {
     setIsProcessingTransfer(true)
 
     try {
-      // 1. DIRECT BLOCKCHAIN EXECUTION (Priority)
-      // We do this FIRST so the wallet pops up immediately.
       console.log("Initiating blockchain transaction...")
       const contract = await getEthereumContract()
       
@@ -301,10 +290,7 @@ export default function Dashboard() {
       await tx.wait()
       toast.success("Gold transferred successfully on Blockchain!")
 
-      // 2. DATABASE SYNC (Secondary)
-      // We attempt to update the DB, but we catch errors here so they don't look like the transfer failed.
       try {
-        // A. Try to find or create recipient (Best effort)
         const { data: recipientUser } = await supabase
           .from('users')
           .select('wallet_address')
@@ -312,20 +298,15 @@ export default function Dashboard() {
           .maybeSingle()
 
        if (!recipientUser) {
-           // Try to insert, but ignore error if RLS blocks it.
-           // We use { error } destructuring instead of .catch()
            const { error: insertError } = await supabase
              .from('users')
              .insert({ wallet_address: recipientAddress, status: 'active' })
-             // .select() is often needed to make sure the promise resolves fully if not using the return value, 
-             // but strictly optional for inserts. Adding maybeSingle() or just awaiting is fine.
            
            if (insertError) {
              console.warn("Could not create recipient user in DB (likely RLS or already exists), proceeding...", insertError)
            }
         }
 
-        // B. Update Item Ownership
         const { error: updateError } = await supabase
           .from('gold_items')
           .update({ owner_wallet: recipientAddress })
@@ -333,7 +314,6 @@ export default function Dashboard() {
         
         if (updateError) throw updateError
 
-        // C. Add History
         const { error: historyError } = await supabase.from('transfer_history').insert({
           gold_item_id: selectedGoldId,
           from_wallet: user.wallet.address,
@@ -349,12 +329,10 @@ export default function Dashboard() {
         toast.warning("Transfer worked, but database update failed. Please refresh.")
       }
 
-      // Close dialog and reset state
       setIsSendOpen(false)
       setRecipientAddress("")
       setSelectedGoldId("")
       
-      // Refresh list
       const { data } = await supabase
         .from('gold_items')
         .select('*')
@@ -363,7 +341,6 @@ export default function Dashboard() {
 
     } catch (error: any) {
       console.error("Transfer failed:", error)
-      // Check if it's the "Owner mismatch" error or user rejection
       if (error.message && error.message.includes("ERC721InvalidSender")) {
          toast.error("Transfer failed: You do not own this token on the blockchain.")
       } else if (error.code === 'ACTION_REJECTED' || (error.info && error.info.error && error.info.error.code === 4001)) {
@@ -433,7 +410,6 @@ export default function Dashboard() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-8">
-            {/* Action Buttons: Send & Receive */}
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 onClick={() => setIsReceiveOpen(true)}
@@ -457,7 +433,68 @@ export default function Dashboard() {
               </Button>
             </div>
 
-            {/* Verification Section */}
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Your Gold Holdings</h2>
+                <div className="rounded-full bg-yellow-500/10 p-2 text-yellow-500">
+                  <Coins className="h-5 w-5" />
+                </div>
+              </div>
+
+              {userGoldItems.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground border-dashed border-2 rounded-xl border-border/50">
+                  <p>You don't own any gold assets yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-xl bg-background/50 p-4 border border-border">
+                      <p className="text-sm text-muted-foreground">Total Weight</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {userGoldItems.reduce((acc, item) => acc + Number(item.weight_grams), 0)}g
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-background/50 p-4 border border-border">
+                      <p className="text-sm text-muted-foreground">Total Items</p>
+                      <p className="text-2xl font-bold text-foreground">{userGoldItems.length}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">Asset List</h3>
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                      {userGoldItems.map((item) => (
+                        <div 
+                          key={item.id} 
+                          className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20">
+                               <img 
+                                  src="gold-bar-icon.png" 
+                                  alt="Gold" 
+                                  className="h-6 w-6 object-contain" 
+                                  onError={(e) => { e.currentTarget.style.display='none'; }}
+                               />
+                               <span className="text-[10px] font-bold text-yellow-600 absolute opacity-0 select-none pointer-events-none">Au</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm text-foreground">{item.serial_number}</p>
+                              <p className="text-xs text-muted-foreground">{item.distributor}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-sm text-foreground">{item.weight_grams}g</p>
+                            <p className="text-xs text-muted-foreground">{item.purity}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:border-primary/30 group">
               <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl transition-all group-hover:bg-primary/10" />
               
@@ -584,7 +621,6 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* Receive Dialog */}
       <Dialog open={isReceiveOpen} onOpenChange={setIsReceiveOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -614,7 +650,6 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Send Dialog */}
       <Dialog open={isSendOpen} onOpenChange={setIsSendOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
