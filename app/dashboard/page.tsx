@@ -17,6 +17,7 @@ import {
   Copy,
   AlertTriangle,
   Coins,
+  ExternalLink,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
@@ -557,15 +558,81 @@ export default function Dashboard() {
                         )}
                         
                         <div className="grid gap-4 sm:grid-cols-2">
-                           <div className="space-y-1 rounded-lg bg-background/50 p-3">
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">Serial Number</p>
-                            <p className="text-sm font-bold text-foreground font-mono">{scanResult.details.serialNumber}</p>
+                           <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Serial Number</p>
+                            <p className="text-sm font-bold text-foreground">{scanResult.details.serialNumber}</p>
                           </div>
-                           <div className="space-y-1 rounded-lg bg-background/50 p-3">
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">Status</p>
-                            <p className="text-sm font-bold text-foreground">{scanResult.details.status}</p>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Weight</p>
+                            <p className="text-sm font-bold text-foreground">{scanResult.details.weight}g</p>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Purity</p>
+                            <p className="text-sm font-bold text-foreground">{scanResult.details.purity}%</p>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Company</p>
+                            <p className="text-sm font-bold text-foreground">{scanResult.details.company}</p>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Verified On</p>
+                            <p className="text-sm font-bold text-foreground">{scanResult.details.verifiedOn}</p>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Status</p>
+                            <p
+                              className={`text-sm font-bold ${
+                                scanResult.details.status === "SEALED" ? "text-green-500" : "text-red-500"
+                              }`}
+                            >
+                              {scanResult.details.status}
+                            </p>
                           </div>
                         </div>
+
+                        {/* Current Owner - Clickable */}
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Current Owner</p>
+                          <button
+                            onClick={() => setShowOwnershipHistory(true)}
+                            className="flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors"
+                          >
+                            <span className="truncate">{scanResult.details.currentOwner}</span>
+                            <History className="h-4 w-4 shrink-0" />
+                          </button>
+                        </div>
+
+                        {/* Transaction Hash */}
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Transaction Hash</p>
+                          <a
+                            href={`https://etherscan.io/tx/${scanResult.details.hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors break-all"
+                          >
+                            <span className="truncate">{scanResult.details.hash}</span>
+                            <ExternalLink className="h-4 w-4 shrink-0" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {scanResult.details && !scanResult.details.image && (
+                      <div className="mt-4 space-y-2">
+                        {Object.entries(scanResult.details).map(([key, value]) => (
+                          <div key={key} className="flex justify-between border-b border-border/50 pb-2">
+                            <span className="text-sm text-muted-foreground capitalize">
+                              {key.replace(/([A-Z])/g, " $1").trim()}:
+                            </span>
+                            <span className="text-sm font-medium text-foreground">{value as string}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
