@@ -29,7 +29,7 @@ export default function Home() {
 
   const handleReadWhitepaper = () => {
     window.open(
-      "https://aegiswhitepaper.notion.site/Aegis-Whitepaper-2ac764c825ed804dbbc3c896bcaf3834?source=copy_link",
+      "https://drive.google.com/file/d/1NkXhE0ejPrPaKsnJuoNfvKjh4wlhNyVc/view?usp=sharing",
       "_blank",
     )
   }
